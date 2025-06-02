@@ -2,16 +2,14 @@ const Order = require('../models/Order');
 exports.getCart = async (req, res) => {
   try {
     const cart = await Order.getCartByUser(req.params.userId);
-    
-    if (!cart) {
-      return res.status(404).json({ 
-        message: 'Cart not found',
-        shouldCreate: true 
-      });
+
+    if (!cart || cart.length === 0) {
+      return res.json([])
     }
-    
-    res.json(cart);
+
+    res.json(cart); // giờ đã bao gồm name và price
   } catch (err) {
+    console.error(err);
     res.status(500).json({ error: 'Get cart failed' });
   }
 };
@@ -24,6 +22,59 @@ exports.updateCart = async (req, res) => {
     res.status(500).json({ error: 'Update cart failed' });
   }
 };
+
+exports.addProductToCart = async (req, res) => {
+      try {
+    const { user_id, productId, quantity } = req.body;
+
+    if (!user_id || !productId || !quantity || quantity <= 0) {
+      return res.status(400).json({ error: 'Invalid input' });
+    }
+
+    // Lấy giỏ hàng hiện tại
+    const cart = await Order.getCartByUser(user_id);
+    let product_ids = cart?.product_ids || [];
+
+    // Kiểm tra sản phẩm đã tồn tại trong giỏ hàng chưa
+    const index = product_ids.findIndex(item => Number(item.productId) === Number(productId));
+
+    if (index !== -1) {
+      // Nếu có thì cộng thêm quantity
+      product_ids[index].quantity += quantity;
+    } else {
+      // Nếu chưa có thì thêm mới
+      product_ids.push({ productId, quantity });
+    }
+
+    // Cập nhật lại giỏ hàng
+    const updatedCart = await Order.createOrUpdateCart({
+      user_id,
+      product_ids
+    });
+
+    res.json(updatedCart);
+  } catch (err) {
+    console.error('Add to cart error:', err.message);
+    res.status(500).json({ error: 'Server error' });
+  }
+};
+
+exports.decreaseQuantityInCart = async (req, res) => {
+  try {
+    const { user_id, productId } = req.body;
+
+    if (!user_id || !productId) {
+      return res.status(400).json({ error: 'Missing user_id or productId' });
+    }
+
+    const updatedCart = await Order.decreaseProductQuantity(user_id, productId);
+    res.json(updatedCart);
+  } catch (err) {
+    console.error('Decrease quantity failed:', err.message);
+    res.status(500).json({ error: 'Server error' });
+  }
+};
+
 
 exports.checkout = async (req, res) => {
   try {

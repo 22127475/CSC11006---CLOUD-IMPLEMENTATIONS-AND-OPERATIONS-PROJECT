@@ -1,5 +1,9 @@
-let cachedUser = null;
-const loginMenuItem = document.getElementById('login-menu-item');
+if (typeof cachedUser === 'undefined') {
+  var cachedUser = null;
+}
+if (typeof loginMenuItem === 'undefined') {
+  var loginMenuItem = document.getElementById('login-menu-item');
+}
 
 // Hàm fetch user
 async function fetchCurrentUser() {
@@ -65,22 +69,24 @@ async function fetchCurrentUser() {
     }
 
   const logoutButton = document.getElementById("logout-button");
+  if (logoutButton) {
+    logoutButton.addEventListener("click", async () => {
+      try {
+        const response = await fetch('http://localhost:3001/logout', {
+          method: 'POST',
+          credentials: 'include'
+        });
 
-  logoutButton.addEventListener("click", async () => {
-    try {
-      const response = await fetch('http://localhost:3001/logout', {
-        method: 'POST',
-        credentials: 'include'
-      });
-
-      if (response.ok) {
-        window.location.href = '/'; 
-      } else {
-        alert("Đăng xuất thất bại. Vui lòng thử lại.");
+        if (response.ok) {
+          window.location.href = '/'; 
+        } else {
+          alert("Đăng xuất thất bại. Vui lòng thử lại.");
+        }
+      } catch (err) {
+        console.error("Lỗi khi đăng xuất:", err);
+        alert("Đã xảy ra lỗi khi đăng xuất.");
       }
-    } catch (err) {
-      console.error("Lỗi khi đăng xuất:", err);
-      alert("Đã xảy ra lỗi khi đăng xuất.");
-    }
-  });
+    });
+  }
+
   });

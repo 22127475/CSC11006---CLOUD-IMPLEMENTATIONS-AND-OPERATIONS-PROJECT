@@ -14,11 +14,11 @@
 <script>
   async function fetchProducts() {
     try {
-      const response = await fetch('http://localhost:3002/products'); // hoặc http://localhost:3000/products nếu frontend tách riêng
+      const response = await fetch('http://localhost:3002/products'); 
       const products = await response.json();
 
       const productList = document.getElementById('product-list');
-      productList.innerHTML = ''; // Xóa nội dung cũ nếu có
+      productList.innerHTML = '';
 
       products.forEach(product => {
         const card = document.createElement('div');
@@ -27,16 +27,64 @@
           <img src="${product.image}" alt="${product.name}">
           <h3>${product.name}</h3>
           <p>Giá: $${product.price}</p>
-          <button data-id="${product.id}">Mua</button>
+          <button class="buy-button" data-id="${product.id}">Mua</button>
         `;
         productList.appendChild(card);
       });
+
+      // Gán sự kiện click cho tất cả nút "Mua"
+      document.querySelectorAll('.buy-button').forEach(button => {
+        button.addEventListener('click', async (e) => {
+        const productId = parseInt(e.target.dataset.id);
+
+        try {
+          const response = await fetch('http://localhost:3001/', {
+            method: 'GET',
+            credentials: 'include' // Đảm bảo cookie được gửi (để xác thực phiên)
+          });
+
+          if (!response.ok) throw new Error('Không lấy được thông tin người dùng');
+          const data = await response.json();
+
+          const user_id = data.user.id;
+
+          if (!user_id) {
+            alert('Vui lòng đăng nhập trước khi thêm sản phẩm vào giỏ hàng.');
+            return;
+          }
+
+          // Gửi yêu cầu thêm sản phẩm vào giỏ hàng
+          const res = await fetch('http://localhost:3003/orders/cart/add', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              user_id,
+              productId,
+              quantity: 1
+            })
+          });
+
+          const result = await res.json();
+
+          if (res.ok) {
+            alert(`Đã thêm sản phẩm vào giỏ hàng!`);
+          } else {
+            alert(`Lỗi: ${result.error}`);
+          }
+        } catch (err) {
+          console.error('Lỗi khi thêm vào giỏ hàng:', err);
+          alert('Không thể thêm vào giỏ hàng.');
+        }
+      });
+      });
+
     } catch (error) {
       console.error('Lỗi khi fetch sản phẩm:', error);
     }
   }
 
-  // Gọi hàm khi trang tải xong
   window.addEventListener('DOMContentLoaded', fetchProducts);
 </script>
 

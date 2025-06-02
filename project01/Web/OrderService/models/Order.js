@@ -65,27 +65,76 @@ class Order {
     return total;
   }
 
-    static async getCartByUser(user_id) {
-        const result = await pool.query(
-            'SELECT * FROM orders WHERE user_id = $1 AND state = $2 LIMIT 1',
-            [user_id, 'cart']
+    static async getCartByUser(userId) {
+    const query = `
+        SELECT 
+        p.id AS product_id,
+        p.name,
+        p.image, 
+        p.price, 
+        item.quantity
+        FROM orders o,
+        jsonb_to_recordset(o.product_ids::jsonb) AS item("productId" INT, quantity INT)
+        JOIN products p ON item."productId" = p.id
+        WHERE o.user_id = $1
+        AND o.state = 'cart'
+    `;
+    const result = await pool.query(query, [userId]);
+    if (result.rows.length === 0) {
+      return []; 
+    }
+    return result.rows;
+    }
+
+static async getUserCartOrder(user_id) {
+  const result = await pool.query(
+    `SELECT * FROM orders WHERE user_id = $1 AND state = 'cart' LIMIT 1`,
+    [user_id]
   );
-  return result.rows[0];
+  return result.rows[0]; // Trả về order chứa cart
 }
 
 static async createOrUpdateCart({ user_id, product_ids }) {
-  const cart = await this.getCartByUser(user_id);
-  const total_price = await this.calculateTotal(product_ids);
+  const cartOrder = await this.getUserCartOrder(user_id);
 
-  if (cart) {
-    // Cập nhật cart cũ
+  let mergedProductIds = [];
+
+  if (cartOrder) {
+    // Parse product_ids từ giỏ hàng cũ
+    const existingProducts = cartOrder.product_ids || [];
+    const productMap = new Map();
+
+    // Gộp sản phẩm cũ vào map
+    for (let item of existingProducts) {
+      productMap.set(item.productId, item.quantity);
+    }
+
+    // Cập nhật hoặc thêm mới sản phẩm
+    for (let item of product_ids) {
+      if (productMap.has(item.productId)) {
+        productMap.set(item.productId, productMap.get(item.productId) + item.quantity);
+      } else {
+        productMap.set(item.productId, item.quantity);
+      }
+    }
+
+    // Chuyển map thành array
+    mergedProductIds = Array.from(productMap.entries()).map(([productId, quantity]) => ({
+      productId,
+      quantity,
+    }));
+
+    const total_price = await this.calculateTotal(mergedProductIds);
+
+    // Cập nhật cart
     const result = await pool.query(
       `UPDATE orders SET product_ids = $1, total_price = $2 WHERE id = $3 RETURNING *`,
-      [JSON.stringify(product_ids), total_price, cart.id]
+      [JSON.stringify(mergedProductIds), total_price, cartOrder.id]
     );
     return result.rows[0];
   } else {
-    // Tạo cart mới
+    // Tạo mới cart nếu chưa có
+    const total_price = await this.calculateTotal(product_ids);
     const result = await pool.query(
       `INSERT INTO orders (user_id, product_ids, state, total_price)
        VALUES ($1, $2, $3, $4) RETURNING *`,
@@ -95,9 +144,40 @@ static async createOrUpdateCart({ user_id, product_ids }) {
   }
 }
 
-static async checkoutCart(user_id, address, phone) {
-  const cart = await this.getCartByUser(user_id);
+static async decreaseProductQuantity(user_id, productId) {
+  const cart = await this.getUserCartOrder(user_id);
   if (!cart) throw new Error('Cart not found');
+
+  let product_ids = cart.product_ids || [];
+
+  const index = product_ids.findIndex(p => Number(p.productId) === Number(productId));
+  if (index === -1) throw new Error('Product not in cart');
+
+  // Giảm quantity hoặc xóa nếu = 1
+  if (product_ids[index].quantity > 1) {
+    product_ids[index].quantity -= 1;
+  } else {
+    product_ids.splice(index, 1);
+  }
+
+  const total_price = await this.calculateTotal(product_ids);
+
+  const result = await pool.query(
+    `UPDATE orders SET product_ids = $1, total_price = $2 WHERE id = $3 RETURNING *`,
+    [JSON.stringify(product_ids), total_price, cart.id]
+  );
+
+  return result.rows[0];
+}
+
+
+static async checkoutCart(user_id, address, phone) {
+  const cart = await this.getUserCartOrder(user_id);
+  if (!cart) throw new Error('Cart not found');
+  const product_ids = cart.product_ids || [];
+  if (!product_ids.length) {
+    throw new Error('Cart is empty. Cannot proceed to checkout.');
+  }
 
   // Đổi cart thành order
   await pool.query(

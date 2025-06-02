@@ -4,7 +4,8 @@ const orderController = require('../controllers/orderController');
 
 router.post('/cart', orderController.updateCart);
 router.post('/checkout', orderController.checkout);
-
+router.post('/cart/add', orderController.addProductToCart);
+router.post('/cart/decrease', orderController.decreaseQuantityInCart);
 // Tạo đơn hàng (giỏ hoặc đã đặt)
 router.post('/', orderController.createOrder);
 

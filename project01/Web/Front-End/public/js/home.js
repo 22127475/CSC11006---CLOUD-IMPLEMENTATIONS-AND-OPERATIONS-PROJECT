@@ -9,8 +9,9 @@ tab.addEventListener('click', () => {
     });
  });
 
- document.addEventListener('DOMContentLoaded', async () => {
+document.addEventListener('DOMContentLoaded', async () => {
   try {
+    // Lấy sản phẩm
     const res = await fetch('http://localhost:3002/products');
     const products = await res.json();
 
@@ -27,25 +28,56 @@ tab.addEventListener('click', () => {
           <img src="${product.image}" alt="${product.name}">
           <h3>${product.name}</h3>
           <p>Giá: $${product.price}</p>
-          <button data-id="${product.id}">Mua</button>
+          <button class="buy-btn" data-id="${product.id}">Mua</button>
         `;
         container.appendChild(card);
       });
     });
+
+    // Sau khi render xong, gán sự kiện cho tất cả nút "Mua"
+    setTimeout(() => {
+      document.querySelectorAll('.buy-btn').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const productId = Number(btn.dataset.id);
+          const quantity = 1;
+
+          try {
+            // Lấy user
+            const userRes = await fetch('http://localhost:3001/', {
+              credentials: 'include'
+            });
+            const userData = await userRes.json();
+            const user_id = userData.user?.id;
+
+            if (!user_id) {
+              alert('Vui lòng đăng nhập trước khi mua hàng');
+              return;
+            }
+
+            const addRes = await fetch('http://localhost:3003/orders/cart/add', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({ user_id, productId, quantity })
+            });
+
+            const result = await addRes.json();
+
+            if (addRes.ok) {
+              alert('Đã thêm vào giỏ hàng!');
+            } else {
+              alert('Lỗi: ' + result.error);
+            }
+          } catch (err) {
+            console.error('Lỗi khi thêm vào giỏ hàng:', err);
+            alert('Không thể thêm sản phẩm vào giỏ hàng');
+          }
+        });
+      });
+    }, 100); // Đảm bảo tất cả card đã render xong
+
   } catch (err) {
     console.error('Lỗi khi tải sản phẩm:', err);
   }
 });
-
-// Tab switching logic
-document.querySelectorAll('.tab').forEach(tab => {
-  tab.addEventListener('click', () => {
-    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-
-    tab.classList.add('active');
-    const target = tab.getAttribute('data-tab');
-    document.getElementById(target).classList.add('active');
-  });
-});
-
