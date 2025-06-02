@@ -1,0 +1,20 @@
+const express = require('express');
+const cors = require('cors');
+const cookieParser = require('cookie-parser');
+require('dotenv').config();
+
+const orderRoutes = require('./routes/index');
+
+const app = express();
+const port = process.env.PORT || 3003;
+
+app.use(cors({ origin: 'http://localhost:8080', credentials: true }));
+app.use(express.json());
+app.use(cookieParser());
+
+// Route order
+app.use('/orders', orderRoutes);
+
+app.listen(port, () => {
+  console.log(`Product service running on http://localhost:${port}`);
+});

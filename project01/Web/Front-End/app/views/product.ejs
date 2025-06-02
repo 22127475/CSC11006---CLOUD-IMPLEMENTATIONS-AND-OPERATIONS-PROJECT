@@ -1,29 +1,52 @@
 <section class="product">
-    <div class="search">
-        <form action="/products/search" method="GET">
-            <input type="text" name="query" placeholder="Hãy tìm món gây tiểu đường cho bạn ..." required>
-            <button class="btn-search" type="submit">Tìm kiếm</button>
-        </form>
+  <div class="search">
+    <form action="/products/search" method="GET">
+      <input type="text" name="query" placeholder="Hãy tìm món gây tiểu đường cho bạn ..." required>
+      <button class="btn-search" type="submit">Tìm kiếm</button>
+    </form>
+  </div>
+  <div class="container">
+    <div class="product-list" id="product-list">
+      <!-- Sản phẩm sẽ được render ở đây -->
     </div>
-    <div class="container">
-        <div class="product-list">
-            <% products.forEach(product => { %>
-                <div class="product-card">
-                    <img src="<%= product.image %>" alt="<%= product.name %>">
-                    <h3><%= product.name %></h3>
-                    <p>Giá: $<%= product.price %></p>
-                    <button data-id="<%= product.id %>">Mua</button>
-                </div>
-            <% }) %>
-        </div>
-    </div>
+  </div>
 </section>
+<script>
+  async function fetchProducts() {
+    try {
+      const response = await fetch('http://localhost:3002/products'); // hoặc http://localhost:3000/products nếu frontend tách riêng
+      const products = await response.json();
+
+      const productList = document.getElementById('product-list');
+      productList.innerHTML = ''; // Xóa nội dung cũ nếu có
+
+      products.forEach(product => {
+        const card = document.createElement('div');
+        card.className = 'product-card';
+        card.innerHTML = `
+          <img src="${product.image}" alt="${product.name}">
+          <h3>${product.name}</h3>
+          <p>Giá: $${product.price}</p>
+          <button data-id="${product.id}">Mua</button>
+        `;
+        productList.appendChild(card);
+      });
+    } catch (error) {
+      console.error('Lỗi khi fetch sản phẩm:', error);
+    }
+  }
+
+  // Gọi hàm khi trang tải xong
+  window.addEventListener('DOMContentLoaded', fetchProducts);
+</script>
+
 <style>
     .product {
         display: flex;
         flex-grow: 1;
         height: 100vh;
         flex-direction: column;
+        background: #fff;
         overflow-y: auto;
     }
     .search {
@@ -32,8 +55,14 @@
         padding: 20px;
         height: 10vh;
     }
+    .search form {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 100%;
+    }
     input {
-        width: 600px;
+        width: 60%;
         padding: 20px;
         border: 3px solid #8d6e63;
         border-radius: 15px;
@@ -75,5 +104,35 @@
     }
     .product-card {
         height: 400px;
+    }
+    .product-card h3 {
+        font-size: 26px;
+        color: #785143;
+        font-weight: bold;
+    }
+    .product-card p {
+        font-size: 20px;
+    }
+    @media screen and (max-width: 1080px) {
+    .product-list {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    }
+
+    @media screen and (max-width: 760px) {
+    .product {
+        height: auto;
+        flex-grow: 1;
+        overflow: hidden;
+        height: max-content;
+    }
+    .product-list {
+        grid-template-columns: repeat(1, 1fr);
+        height: max-content;
+        flex-grow: 1;
+    }
+    .container{
+        height: auto;
+    }
     }
 </style>
