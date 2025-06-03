@@ -15,15 +15,39 @@ class Order {
 
   static async getByUser(user_id) {
     const result = await pool.query(
-      'SELECT * FROM orders WHERE user_id = $1 ORDER BY created_at DESC',
+      `SELECT * FROM orders WHERE user_id = $1 and state = 'ordered' ORDER BY created_at DESC`,
       [user_id]
     );
-    return result.rows;
+    return result.rows || [];
   }
 
-  static async getById(id) {
-    const result = await pool.query('SELECT * FROM orders WHERE id = $1', [id]);
-    return result.rows[0];
+  static async getById(id, userId) {
+    const query = `
+      SELECT 
+        o.id,
+        o.user_id,
+        o.address,
+        o.phone,
+        o.state,
+        o.created_at,
+        o.total_price,
+        json_agg(
+          json_build_object(
+            'id', p.id,
+            'name', p.name,
+            'image', p.image,
+            'price', p.price,
+            'quantity', item.quantity
+          )
+        ) AS product_ids
+      FROM orders o
+      CROSS JOIN jsonb_to_recordset(o.product_ids::jsonb) AS item("productId" INT, quantity INT)
+      JOIN products p ON item."productId" = p.id
+      WHERE o.id = $1 AND o.user_id = $2
+      GROUP BY o.id, o.user_id, o.address, o.phone, o.state, o.created_at, o.total_price
+    `;
+    const result = await pool.query(query, [id, userId]);
+    return result.rows[0] || null;
   }
 
   static async update(id, { product_ids, address, phone, state }) {
@@ -85,6 +109,28 @@ class Order {
     }
     return result.rows;
     }
+
+    static async getOrderedProducts(orderId, userId) {
+    const query = `
+        SELECT 
+        p.id AS product_id,
+        p.name,
+        p.image, 
+        p.price, 
+        item.quantity
+        FROM orders o,
+        jsonb_to_recordset(o.product_ids::jsonb) AS item("productId" INT, quantity INT)
+        JOIN products p ON item."productId" = p.id
+        WHERE o.id = $1
+        AND o.user_id = $2
+        AND o.state = 'ordered'
+    `;
+    const result = await pool.query(query, [orderId, userId]);
+    if (result.rows.length === 0) {
+      return []; 
+    }
+    return result.rows;
+}
 
 static async getUserCartOrder(user_id) {
   const result = await pool.query(

@@ -99,6 +99,7 @@ exports.createOrder = async (req, res) => {
 exports.getOrdersByUser = async (req, res) => {
   try {
     const orders = await Order.getByUser(req.params.userId);
+    console.log(orders);
     res.json(orders);
   } catch (error) {
     console.error('Get orders failed:', error);
@@ -108,12 +109,28 @@ exports.getOrdersByUser = async (req, res) => {
 
 exports.getOrderById = async (req, res) => {
   try {
-    const order = await Order.getById(req.params.id);
-    if (!order) return res.status(404).json({ error: 'Order not found' });
+    const { orderId, userId } = req.body;
+
+    if (!orderId || !userId) {
+      return res.status(400).json({ error: 'Missing orderId or userId in request body' });
+    }
+
+    const parsedOrderId = parseInt(orderId);
+    const parsedUserId = parseInt(userId);
+    if (isNaN(parsedOrderId) || isNaN(parsedUserId)) {
+      return res.status(400).json({ error: 'orderId and userId must be valid numbers' });
+    }
+
+    const order = await Order.getById(parsedOrderId, parsedUserId);
+
+    if (!order) {
+      return res.status(404).json({ error: 'Order not found or you do not have access' });
+    }
+
     res.json(order);
   } catch (error) {
     console.error('Get order failed:', error);
-    res.status(500).json({ error: 'Server error' });
+    res.status(500).json({ error: 'Server error', details: error.message });
   }
 };
 

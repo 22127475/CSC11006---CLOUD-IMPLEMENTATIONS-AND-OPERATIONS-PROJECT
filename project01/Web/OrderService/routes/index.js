@@ -13,7 +13,7 @@ router.post('/', orderController.createOrder);
 router.get('/user/:userId', orderController.getOrdersByUser);
 
 // Lấy chi tiết đơn hàng
-router.get('/:id', orderController.getOrderById);
+router.post('/:id', orderController.getOrderById);
 
 // Cập nhật đơn hàng (giỏ → đơn)
 router.put('/:id', orderController.updateOrder);
