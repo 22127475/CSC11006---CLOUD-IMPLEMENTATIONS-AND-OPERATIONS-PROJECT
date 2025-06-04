@@ -8,8 +8,10 @@ const jwt = require('jsonwebtoken');
 const authMiddleware = require('./middleware/auth');
 const { use } = require('react');
 app.use(cookieParser());
+
+const hostURL = process.env.HOST_URL || 'http://localhost:8080';
 const corsOptions = {
-  origin: 'http://localhost:8080', 
+  origin: hostURL, 
   credentials: true,          
 };
 app.use(cors(corsOptions));
