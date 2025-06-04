@@ -13,7 +13,7 @@ async function fetchCurrentUser() {
   }
 
   try {
-    const response = await fetch('http://localhost:3001/', {
+    const response = await fetch(`${apiBaseUrl}:3001/`, {
       method: 'GET',
       credentials: 'include' // gửi cookie
     });
@@ -44,7 +44,7 @@ async function fetchCurrentUser() {
       if (emailElement) {
         emailElement.textContent = user.email || 'Chưa có email';
       }
-      const checkCartResponse = await fetch(`http://localhost:3003/orders/cart/${user.id}`, {
+      const checkCartResponse = await fetch(`${apiBaseUrl}:3003/orders/cart/${user.id}`, {
         method: 'GET',
         credentials: 'include'
       });
@@ -52,7 +52,7 @@ async function fetchCurrentUser() {
       const cartData = await checkCartResponse.json();
       
       if (checkCartResponse.status === 404 && cartData.shouldCreate) {
-        await fetch('http://localhost:3003/orders/cart', {
+        await fetch(`${apiBaseUrl}:3003/orders/cart`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           credentials: 'include',
@@ -72,7 +72,7 @@ async function fetchCurrentUser() {
   if (logoutButton) {
     logoutButton.addEventListener("click", async () => {
       try {
-        const response = await fetch('http://localhost:3001/logout', {
+        const response = await fetch(`${apiBaseUrl}:3001/logout`, {
           method: 'POST',
           credentials: 'include'
         });

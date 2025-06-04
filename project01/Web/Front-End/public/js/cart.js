@@ -2,7 +2,7 @@ let cartItemCount = 0; // Biến toàn cục để lưu số sản phẩm trong 
 
 async function loadCartPage() {
   try {
-    const userRes = await fetch('http://localhost:3001/', {
+    const userRes = await fetch(`${apiBaseUrl}:3001/`, {
       method: 'GET',
       credentials: 'include'
     });
@@ -18,7 +18,7 @@ async function loadCartPage() {
 
     document.getElementById('name').value = user.username || 'Chưa rõ';
 
-    const cartRes = await fetch(`http://localhost:3003/orders/cart/${user.id}`);
+    const cartRes = await fetch(`${apiBaseUrl}:3003/orders/cart/${user.id}`);
     if (!cartRes.ok) throw new Error('Không thể lấy giỏ hàng');
     const cartItems = await cartRes.json();
 
@@ -56,7 +56,7 @@ async function loadCartPage() {
     document.querySelectorAll('.insc').forEach(btn => {
       btn.addEventListener('click', async () => {
         const productId = btn.getAttribute('data-product-id');
-        await fetch('http://localhost:3003/orders/cart/add', {
+        await fetch(`${apiBaseUrl}:3003/orders/cart/add`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
@@ -70,7 +70,7 @@ async function loadCartPage() {
     document.querySelectorAll('.desc').forEach(btn => {
       btn.addEventListener('click', async () => {
         const productId = btn.getAttribute('data-product-id');
-        await fetch('http://localhost:3003/orders/cart/decrease', {
+        await fetch(`${apiBaseUrl}:3003/orders/cart/decrease`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
@@ -104,7 +104,7 @@ document.querySelector('.checkout-button').addEventListener('click', async () =>
   }
 
   try {
-    const userRes = await fetch('http://localhost:3001/', {
+    const userRes = await fetch(`${apiBaseUrl}:3001/`, {
       credentials: 'include',
     });
 
@@ -114,7 +114,7 @@ document.querySelector('.checkout-button').addEventListener('click', async () =>
 
     if (!user_id) throw new Error('Không có user_id');
 
-    const checkoutRes = await fetch('http://localhost:3003/orders/checkout', {
+    const checkoutRes = await fetch(`${apiBaseUrl}:3003/orders/checkout`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'

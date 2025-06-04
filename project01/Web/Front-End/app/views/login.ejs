@@ -20,7 +20,7 @@
   document.addEventListener('DOMContentLoaded', async () => {
   // Kiểm tra đăng nhập khi trang load
   try {
-    const response = await fetch('http://localhost:3001/check-auth', {
+    const response = await fetch(`${apiBaseUrl}:3001/check-auth`, {
       credentials: 'include' // Quan trọng để gửi cookie
     });
     
@@ -44,7 +44,7 @@
     };
 
     try {
-      const response = await fetch('http://localhost:3001/login', {
+      const response = await fetch(`${apiBaseUrl}:3001/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),

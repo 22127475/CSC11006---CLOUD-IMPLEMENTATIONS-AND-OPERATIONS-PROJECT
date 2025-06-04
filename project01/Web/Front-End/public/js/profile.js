@@ -1,7 +1,7 @@
 document.addEventListener('DOMContentLoaded', async () => {
   try {
     // Lấy thông tin user từ endpoint của bạn
-    const userRes = await fetch('http://localhost:3001/', {
+    const userRes = await fetch(`${apiBaseUrl}:3001/`, {
       method: 'GET',
       credentials: 'include'
     });
@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 
     // Fetch danh sách đơn hàng từ API
-    const ordersRes = await fetch(`http://localhost:3003/orders/user/${user.id}`, {
+    const ordersRes = await fetch(`${apiBaseUrl}:3003/orders/user/${user.id}`, {
       method: 'GET',
       credentials: 'include' // Sử dụng credentials nếu bạn dùng session/cookie
     });
@@ -74,7 +74,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 async function loadOrderDetail(orderId) {
   try {
-    const userRes = await fetch('http://localhost:3001/', {
+    const userRes = await fetch(`${apiBaseUrl}:3001/`, {
       method: 'GET',
       credentials: 'include'
     });
@@ -87,7 +87,7 @@ async function loadOrderDetail(orderId) {
       throw new Error('User not authenticated');
     } // Get userId from the authenticated user
 
-    const orderDetailRes = await fetch(`http://localhost:3003/orders/${orderId}`, {
+    const orderDetailRes = await fetch(`${apiBaseUrl}:3003/orders/${orderId}`, {
       method: 'POST', // Changed to POST to send body
       credentials: 'include',
       headers: {

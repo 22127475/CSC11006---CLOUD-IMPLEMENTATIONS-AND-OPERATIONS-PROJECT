@@ -12,7 +12,7 @@ tab.addEventListener('click', () => {
 document.addEventListener('DOMContentLoaded', async () => {
   try {
     // Lấy sản phẩm
-    const res = await fetch('http://localhost:3002/products');
+    const res = await fetch(`${apiBaseUrl}:3002/products`);
     const products = await res.json();
 
     const categories = ['coffee', 'tea', 'milktea', 'icecream'];
@@ -43,7 +43,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
           try {
             // Lấy user
-            const userRes = await fetch('http://localhost:3001/', {
+            const userRes = await fetch(`${apiBaseUrl}:3001/`, {
               credentials: 'include'
             });
             const userData = await userRes.json();
@@ -54,7 +54,7 @@ document.addEventListener('DOMContentLoaded', async () => {
               return;
             }
 
-            const addRes = await fetch('http://localhost:3003/orders/cart/add', {
+            const addRes = await fetch(`${apiBaseUrl}:3003/orders/cart/add`, {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json'

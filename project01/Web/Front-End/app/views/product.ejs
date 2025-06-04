@@ -14,7 +14,7 @@
 <script>
   async function fetchProducts() {
     try {
-      const response = await fetch('http://localhost:3002/products'); 
+      const response = await fetch(`${apiBaseUrl}:3002/products`); 
       const products = await response.json();
 
       const productList = document.getElementById('product-list');
@@ -38,7 +38,7 @@
         const productId = parseInt(e.target.dataset.id);
 
         try {
-          const response = await fetch('http://localhost:3001/', {
+          const response = await fetch(`${apiBaseUrl}:3001/`, {
             method: 'GET',
             credentials: 'include' // Đảm bảo cookie được gửi (để xác thực phiên)
           });
@@ -54,7 +54,7 @@
           }
 
           // Gửi yêu cầu thêm sản phẩm vào giỏ hàng
-          const res = await fetch('http://localhost:3003/orders/cart/add', {
+          const res = await fetch(`${apiBaseUrl}:3003/orders/cart/add`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json'
