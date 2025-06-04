@@ -7,8 +7,8 @@ const orderRoutes = require('./routes/index');
 
 const app = express();
 const port = process.env.PORT || 3003;
-
-app.use(cors({ origin: 'http://localhost:8080', credentials: true }));
+const hostURL = process.env.HOST_URL || 'http://localhost:8080';
+app.use(cors({ origin: hostURL, credentials: true }));
 app.use(express.json());
 app.use(cookieParser());
 
