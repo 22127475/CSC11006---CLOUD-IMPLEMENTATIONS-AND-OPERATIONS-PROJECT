@@ -6,8 +6,9 @@ const productRoutes = require('./routes/index');
 const app = express();
 const port = process.env.PORT || 3002;
 const hostIP = process.env.IP || localhost
+const hostURL = process.env.HOST_URL || 'http://localhost:8080';
 
-app.use(cors({ origin: 'http://localhost:8080', credentials: true }));
+app.use(cors({ origin: hostURL, credentials: true }));
 app.use(express.json());
 
 app.use('/products', productRoutes);
