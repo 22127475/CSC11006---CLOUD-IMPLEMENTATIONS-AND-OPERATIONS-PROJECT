@@ -80,7 +80,7 @@ class Order {
 
     let total = 0;
     for (let item of product_ids) {
-      const product = result.rows.find(p => p.id === item.productId);
+      const product = result.rows.find(p => p.id === Number(item.productId));
       if (product) {
         total += product.price * item.quantity;
       }

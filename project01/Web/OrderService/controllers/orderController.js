@@ -99,7 +99,6 @@ exports.createOrder = async (req, res) => {
 exports.getOrdersByUser = async (req, res) => {
   try {
     const orders = await Order.getByUser(req.params.userId);
-    console.log(orders);
     res.json(orders);
   } catch (error) {
     console.error('Get orders failed:', error);
