@@ -38,6 +38,7 @@ exports.addProductToCart = async (req, res) => {
     // Kiểm tra sản phẩm đã tồn tại trong giỏ hàng chưa
     const index = product_ids.findIndex(item => Number(item.productId) === Number(productId));
 
+
     if (index !== -1) {
       // Nếu có thì cộng thêm quantity
       product_ids[index].quantity += quantity;
@@ -99,7 +100,6 @@ exports.createOrder = async (req, res) => {
 exports.getOrdersByUser = async (req, res) => {
   try {
     const orders = await Order.getByUser(req.params.userId);
-    console.log(orders);
     res.json(orders);
   } catch (error) {
     console.error('Get orders failed:', error);

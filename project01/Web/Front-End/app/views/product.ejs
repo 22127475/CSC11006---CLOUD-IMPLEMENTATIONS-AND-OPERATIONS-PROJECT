@@ -35,8 +35,7 @@
       // Gán sự kiện click cho tất cả nút "Mua"
       document.querySelectorAll('.buy-button').forEach(button => {
         button.addEventListener('click', async (e) => {
-        const productId = parseInt(e.target.dataset.id);
-
+        const productId = e.target.dataset.id;
         try {
           const response = await fetch('http://localhost:3001/', {
             method: 'GET',

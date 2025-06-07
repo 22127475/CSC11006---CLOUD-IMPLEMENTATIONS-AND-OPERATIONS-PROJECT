@@ -80,7 +80,7 @@ class Order {
 
     let total = 0;
     for (let item of product_ids) {
-      const product = result.rows.find(p => p.id === item.productId);
+      const product = result.rows.find(p => p.id === Number(item.productId));
       if (product) {
         total += product.price * item.quantity;
       }
@@ -171,6 +171,8 @@ static async createOrUpdateCart({ user_id, product_ids }) {
     }));
 
     const total_price = await this.calculateTotal(mergedProductIds);
+
+    console.log(total_price);
 
     // Cập nhật cart
     const result = await pool.query(

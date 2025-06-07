@@ -38,7 +38,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     setTimeout(() => {
       document.querySelectorAll('.buy-btn').forEach(btn => {
         btn.addEventListener('click', async () => {
-          const productId = Number(btn.dataset.id);
+          const productId = btn.dataset.id;
           const quantity = 1;
 
           try {
