@@ -36,7 +36,7 @@ echo PORT=3003 >> OrderService\.env
 echo JWT_SECRET=my_super_secret_key_123456 >> OrderService\.env
 
 :: Front-End
-
+echo API_BASE_URL=http://localhost > Front-End\.env
 
 echo ======================================
 echo Building Docker images...
