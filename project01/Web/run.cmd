@@ -1,11 +1,11 @@
 @echo off
-setlocal enabledelayedexpansion
+setlocal
 
 :: ----------------------
 :: Step 1: Tạo file .env
 :: ----------------------
 echo ======================================
-echo Creating .env files...
+echo [+] Creating .env files...
 echo ======================================
 
 :: AuthService
@@ -37,20 +37,26 @@ echo JWT_SECRET=my_super_secret_key_123456 >> OrderService\.env
 
 :: Front-End
 echo API_BASE_URL=http://localhost > Front-End\.env
+echo [DONE] .env files created.
 
 echo ======================================
-echo Building Docker images...
+echo [+] Building Docker images...
 echo ======================================
-docker-compose build
+docker-compose up --build
+echo ======================================
+echo [DONE] Docker images built successfully.
+echo ======================================
 
 echo ======================================
-echo Starting all services...
+echo [+] Deleting Docker containers...
 echo ======================================
-docker-compose up
+docker-compose down --rmi all
+echo ======================================
+echo [DONE] Docker containers deleted successfully.
+echo ======================================
 
-echo.
 echo ======================================
-echo Cleaning up .env files...
+echo [+] Cleaning up .env files...
 echo ======================================
 
 del /f /q AuthService\.env
@@ -58,4 +64,8 @@ del /f /q ProductService\.env
 del /f /q OrderService\.env
 del /f /q Front-End\.env
 
-echo Done.
+echo ======================================
+echo [DONE] Cleaned up. Done.
+echo ======================================
+
+endlocal
