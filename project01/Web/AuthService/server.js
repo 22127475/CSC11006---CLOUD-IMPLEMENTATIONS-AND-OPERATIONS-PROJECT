@@ -14,7 +14,7 @@ const corsOptions = {
   origin: true, 
   credentials: true,          
 };
-app.use(cors(corsOptions));
+app.use(cors());
 app.use(express.json());
 
 app.get('/',authMiddleware, async (req, res) => {
