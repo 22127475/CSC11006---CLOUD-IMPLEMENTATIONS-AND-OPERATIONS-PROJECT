@@ -44,7 +44,7 @@ document.addEventListener('DOMContentLoaded', async () => {
           try {
             // Lấy user
             const userRes = await fetch(`${apiBaseUrl}:3001/`, {
-              credentials: 'include'
+              // credentials: 'include'
             });
             const userData = await userRes.json();
             const user_id = userData.user?.id;
