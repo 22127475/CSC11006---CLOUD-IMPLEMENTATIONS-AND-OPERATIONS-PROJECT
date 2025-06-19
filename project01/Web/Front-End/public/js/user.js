@@ -15,7 +15,7 @@ async function fetchCurrentUser() {
   try {
     const response = await fetch(`${apiBaseUrl}:3001/`, {
       method: 'GET',
-      credentials: 'include' // gửi cookie
+      // credentials: 'include' // gửi cookie
     });
     if (!response.ok) throw new Error('Không lấy được thông tin người dùng');
     const data = await response.json();
@@ -46,7 +46,7 @@ async function fetchCurrentUser() {
       }
       const checkCartResponse = await fetch(`${apiBaseUrl}:3003/orders/cart/${user.id}`, {
         method: 'GET',
-        credentials: 'include'
+        // credentials: 'include'
       });
 
       const cartData = await checkCartResponse.json();
@@ -55,7 +55,7 @@ async function fetchCurrentUser() {
         await fetch(`${apiBaseUrl}:3003/orders/cart`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          credentials: 'include',
+          // credentials: 'include',
           body: JSON.stringify({
             user_id: user.id,
             product_ids: [],
@@ -74,7 +74,7 @@ async function fetchCurrentUser() {
       try {
         const response = await fetch(`${apiBaseUrl}:3001/logout`, {
           method: 'POST',
-          credentials: 'include'
+          // credentials: 'include'
         });
 
         if (response.ok) {
