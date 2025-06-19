@@ -4,7 +4,7 @@ async function loadCartPage() {
   try {
     const userRes = await fetch(`${apiBaseUrl}:3001/`, {
       method: 'GET',
-      credentials: 'include'
+      // credentials: 'include'
     });
 
     if (!userRes.ok) throw new Error('Không thể lấy thông tin người dùng');
@@ -105,7 +105,7 @@ document.querySelector('.checkout-button').addEventListener('click', async () =>
 
   try {
     const userRes = await fetch(`${apiBaseUrl}:3001/`, {
-      credentials: 'include',
+      // credentials: 'include',
     });
 
     if (!userRes.ok) throw new Error('Không thể lấy thông tin người dùng');
