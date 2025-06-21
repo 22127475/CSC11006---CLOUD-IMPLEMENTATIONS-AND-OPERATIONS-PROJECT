@@ -111,8 +111,13 @@ document.querySelector('.checkout-button').addEventListener('click', async () =>
     if (!userRes.ok) throw new Error('Không thể lấy thông tin người dùng');
     const userData = await userRes.json();
     const user_id = userData.user?.id;
+    const email = userData.user?.email;
 
     if (!user_id) throw new Error('Không có user_id');
+
+    const cartRes = await fetch(`${apiBaseUrl}:3003/orders/cart/${user_id}`);
+    if (!cartRes.ok) throw new Error('Không thể lấy giỏ hàng');
+    const cartData = await cartRes.json();
 
     const checkoutRes = await fetch(`${apiBaseUrl}:3003/orders/checkout`, {
       method: 'POST',
@@ -129,6 +134,17 @@ document.querySelector('.checkout-button').addEventListener('click', async () =>
     const result = await checkoutRes.json();
 
     if (checkoutRes.ok) {
+        await fetch("https://kohvuu5txks63tcmxtcoyg3qe40tkwgi.lambda-url.us-east-1.on.aws/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email,
+          name: name,
+          address,
+          phone,
+          order: cartData 
+        })
+      });
       alert('Thanh toán thành công!');
       location.reload(); // Hoặc chuyển hướng sang trang đơn hàng
     } else {
