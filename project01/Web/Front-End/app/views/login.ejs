@@ -21,7 +21,7 @@
   // Kiểm tra đăng nhập khi trang load
   try {
     const response = await fetch(`${apiBaseUrl}:3001/check-auth`, {
-      credentials: 'include' // Quan trọng để gửi cookie
+      // credentials: 'include' // Quan trọng để gửi cookie
     });
     
     const data = await response.json();
