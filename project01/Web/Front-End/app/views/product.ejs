@@ -40,7 +40,7 @@
         try {
           const response = await fetch(`${apiBaseUrl}:3001/`, {
             method: 'GET',
-            credentials: 'include' // Đảm bảo cookie được gửi (để xác thực phiên)
+            // credentials: 'include' // Đảm bảo cookie được gửi (để xác thực phiên)
           });
 
           if (!response.ok) throw new Error('Không lấy được thông tin người dùng');
