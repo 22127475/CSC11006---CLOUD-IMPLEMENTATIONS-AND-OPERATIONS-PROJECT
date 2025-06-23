@@ -9,6 +9,9 @@ const authMiddleware = require('./middleware/auth');
 const { use } = require('react');
 app.use(cookieParser());
 
+// disable etag
+app.disable('etag');
+
 const hostURL = process.env.HOST_URL || 'http://localhost:8080';
 const ALB_DNS = process.env.ALB_DNS ? `http://${process.env.ALB_DNS.toLowerCase()}:8080` : null;
 const allowedOrigins = [process.env.HOST_URL, ALB_DNS];
