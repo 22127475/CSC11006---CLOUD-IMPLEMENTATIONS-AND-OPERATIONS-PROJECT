@@ -10,9 +10,18 @@ const { use } = require('react');
 app.use(cookieParser());
 
 const hostURL = process.env.HOST_URL || 'http://localhost:8080';
-const ALB_DNS = process.env.ALB_DNS ? `http://${process.env.ALB_DNS.toLowerCase()}:8080` : 'http://localhost:8080';
+const ALB_DNS = process.env.ALB_DNS ? `http://${process.env.ALB_DNS.toLowerCase()}:8080` : null;
+const allowedOrigins = [process.env.HOST_URL, ALB_DNS];
 const corsOptions = {
-  origin: [hostURL, ALB_DNS], 
+  // origin: [hostURL, ALB_DNS], 
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error(`Origin ${origin} not allowed by CORS`));
+    }
+  },
+  credentials: true,
   credentials: true,          
 };
 console.log(corsOptions);
