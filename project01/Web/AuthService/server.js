@@ -22,7 +22,7 @@ const corsOptions = {
     }
   },
   credentials: true,
-  credentials: true,          
+  
 };
 console.log(corsOptions);
 app.use(cors(corsOptions));
