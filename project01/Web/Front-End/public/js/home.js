@@ -8,7 +8,17 @@ tab.addEventListener('click', () => {
     document.getElementById(tab.dataset.tab).classList.add('active');
     });
  });
+  function showToast(message) {
+  const toast = document.getElementById('toast-message');
+  toast.textContent = message;
+  toast.classList.remove('hidden');
+  toast.classList.add('show');
 
+  setTimeout(() => {
+    toast.classList.remove('show');
+    toast.classList.add('hidden');
+  }, 3000); // Hiển thị trong 3 giây
+}
 document.addEventListener('DOMContentLoaded', async () => {
   try {
     // Lấy sản phẩm
@@ -50,7 +60,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             const user_id = userData.user?.id;
 
             if (!user_id) {
-              alert('Vui lòng đăng nhập trước khi mua hàng');
+              showToast('Vui lòng đăng nhập trước khi mua hàng');
               return;
             }
 
@@ -65,13 +75,13 @@ document.addEventListener('DOMContentLoaded', async () => {
             const result = await addRes.json();
 
             if (addRes.ok) {
-              alert('Đã thêm vào giỏ hàng!');
+              showToast('Đã thêm vào giỏ hàng!');
             } else {
-              alert('Lỗi: ' + result.error);
+              showToast('Lỗi: ' + result.error);
             }
           } catch (err) {
             console.error('Lỗi khi thêm vào giỏ hàng:', err);
-            alert('Không thể thêm sản phẩm vào giỏ hàng');
+            showToast('Không thể thêm sản phẩm vào giỏ hàng');
           }
         });
       });
