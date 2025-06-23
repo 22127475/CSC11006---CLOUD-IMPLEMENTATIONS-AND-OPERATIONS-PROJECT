@@ -55,7 +55,7 @@ async function fetchCurrentUser() {
         await fetch(`${apiBaseUrl}:3003/orders/cart`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          // credentials: 'include',
+          credentials: 'include',
           body: JSON.stringify({
             user_id: user.id,
             product_ids: [],
