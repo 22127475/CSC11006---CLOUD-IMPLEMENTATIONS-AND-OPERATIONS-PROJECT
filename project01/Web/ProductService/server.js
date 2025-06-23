@@ -6,7 +6,7 @@ const productRoutes = require("./routes/index");
 const app = express();
 const port = process.env.PORT || 3002;
 const hostURL = process.env.HOST_URL || "http://localhost:8080";
-const ALB_DNS = process.env.ALB_DNS  + ":8080"|| 'http://localhost:8080';
+const ALB_DNS = "http://" + process.env.ALB_DNS  + ":8080"|| 'http://localhost:8080';
 const corsOptions = {
   origin: [hostURL, ALB_DNS],
   credentials: true
