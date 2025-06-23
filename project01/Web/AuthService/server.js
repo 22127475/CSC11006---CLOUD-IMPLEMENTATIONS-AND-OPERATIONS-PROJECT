@@ -15,7 +15,7 @@ const corsOptions = {
   origin: [hostURL, ALB_DNS], 
   credentials: true,          
 };
-app.use(cors());
+app.use(cors(corsOptions));
 app.use(express.json());
 
 app.get('/',authMiddleware, async (req, res) => {
