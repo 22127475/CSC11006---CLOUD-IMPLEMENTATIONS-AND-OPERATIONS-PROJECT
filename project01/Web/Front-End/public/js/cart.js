@@ -1,5 +1,17 @@
 let cartItemCount = 0; // Biến toàn cục để lưu số sản phẩm trong giỏ hàng
 
+  function showToast(message) {
+  const toast = document.getElementById('toast-message');
+  toast.textContent = message;
+  toast.classList.remove('hidden');
+  toast.classList.add('show');
+
+  setTimeout(() => {
+    toast.classList.remove('show');
+    toast.classList.add('hidden');
+  }, 3000); // Hiển thị trong 3 giây
+}
+
 async function loadCartPage() {
   try {
     const userRes = await fetch(`${apiBaseUrl}:3001/`, {
@@ -12,7 +24,7 @@ async function loadCartPage() {
     const user = userData.user;
 
     if (!user || !user.id) {
-        alert('Vui lòng đăng nhập trước khi xem giỏ hàng');
+        showToast('Vui lòng đăng nhập trước khi xem giỏ hàng');
         return;
     }
 
@@ -83,7 +95,7 @@ async function loadCartPage() {
 
   } catch (err) {
     console.error('Lỗi khi tải dữ liệu:', err);
-    alert('Không thể tải dữ liệu giỏ hàng.');
+    showToast('Không thể tải dữ liệu giỏ hàng.');
   }
 }
 
@@ -94,12 +106,12 @@ document.querySelector('.checkout-button').addEventListener('click', async () =>
   const phone = document.getElementById('phone').value;
 
   if (!address || !phone) {
-    alert('Vui lòng nhập đầy đủ địa chỉ và số điện thoại');
+    showToast('Vui lòng nhập đầy đủ địa chỉ và số điện thoại');
     return;
   }
 
   if (cartItemCount === 0) {
-    alert('Giỏ hàng đang trống. Vui lòng thêm sản phẩm trước khi thanh toán.');
+    showToast('Giỏ hàng đang trống. Vui lòng thêm sản phẩm trước khi thanh toán.');
     return;
   }
 
@@ -145,15 +157,15 @@ document.querySelector('.checkout-button').addEventListener('click', async () =>
           order: cartData 
         })
       });
-      alert('Thanh toán thành công!');
+      showToast('Thanh toán thành công!');
       location.reload(); // Hoặc chuyển hướng sang trang đơn hàng
     } else {
-      alert('Lỗi khi thanh toán: ' + result.message);
+      showToast('Lỗi khi thanh toán: ' + result.message);
     }
 
   } catch (error) {
     console.error('Lỗi:', error);
-    alert('Đã xảy ra lỗi khi xử lý thanh toán');
+    showToast('Đã xảy ra lỗi khi xử lý thanh toán');
   }
 });
 document.addEventListener('DOMContentLoaded', loadCartPage);

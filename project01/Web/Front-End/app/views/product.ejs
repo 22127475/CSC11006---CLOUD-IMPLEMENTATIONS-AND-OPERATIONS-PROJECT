@@ -11,7 +11,20 @@
     </div>
   </div>
 </section>
+<div id="toast-message" class="toast hidden"></div>
 <script>
+  function showToast(message) {
+  const toast = document.getElementById('toast-message');
+  toast.textContent = message;
+  toast.classList.remove('hidden');
+  toast.classList.add('show');
+
+  setTimeout(() => {
+    toast.classList.remove('show');
+    toast.classList.add('hidden');
+  }, 3000); // Hiển thị trong 3 giây
+}
+
   async function fetchProducts() {
     try {
       const response = await fetch(`${apiBaseUrl}:3002/products`); 
@@ -69,13 +82,13 @@
           const result = await res.json();
 
           if (res.ok) {
-            alert(`Đã thêm sản phẩm vào giỏ hàng!`);
+            showToast('Đã thêm sản phẩm vào giỏ hàng!');
           } else {
             alert(`Lỗi: ${result.error}`);
           }
         } catch (err) {
           console.error('Lỗi khi thêm vào giỏ hàng:', err);
-          alert('Không thể thêm vào giỏ hàng.');
+          showToast('Không thể thêm vào giỏ hàng.');
         }
       });
       });
@@ -161,6 +174,7 @@
     .product-card p {
         font-size: 20px;
     }
+
     @media screen and (max-width: 1080px) {
     .product-list {
         grid-template-columns: repeat(2, 1fr);

@@ -54,7 +54,6 @@
       const data = await response.json();
       if (response.ok) {
       localStorage.setItem('domUpdated', 'false'); // Reset trạng thái DOM
-      alert('Đăng nhập thành công!');
       window.location.href = '/'; // Trang chủ
       } else {
         alert(data.error || 'Đăng nhập thất bại');
