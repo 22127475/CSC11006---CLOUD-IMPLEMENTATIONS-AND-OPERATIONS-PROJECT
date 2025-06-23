@@ -10,8 +10,9 @@ const { use } = require('react');
 app.use(cookieParser());
 
 const hostURL = process.env.HOST_URL || 'http://localhost:8080';
+const ALB_DNS = process.env.ALB_DNS || 'http://localhost:8080;
 const corsOptions = {
-  origin: true, 
+  origin: [hostURL, ALB_DNS], 
   credentials: true,          
 };
 app.use(cors());
