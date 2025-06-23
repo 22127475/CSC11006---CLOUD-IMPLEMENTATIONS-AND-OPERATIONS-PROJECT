@@ -3,7 +3,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Lấy thông tin user từ endpoint của bạn
     const userRes = await fetch(`${apiBaseUrl}:3001/`, {
       method: 'GET',
-      // credentials: 'include'
+      credentials: 'include'
     });
 
     if (!userRes.ok) throw new Error('Không thể lấy thông tin người dùng');
@@ -20,7 +20,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Fetch danh sách đơn hàng từ API
     const ordersRes = await fetch(`${apiBaseUrl}:3003/orders/user/${user.id}`, {
       method: 'GET',
-      // credentials: 'include' // Sử dụng credentials nếu bạn dùng session/cookie
+      credentials: 'include' // Sử dụng credentials nếu bạn dùng session/cookie
     });
 
     if (!ordersRes.ok) {
@@ -76,7 +76,7 @@ async function loadOrderDetail(orderId) {
   try {
     const userRes = await fetch(`${apiBaseUrl}:3001/`, {
       method: 'GET',
-      // credentials: 'include'
+      credentials: 'include'
     });
 
     if (!userRes.ok) throw new Error('Không thể lấy thông tin người dùng');
@@ -89,7 +89,7 @@ async function loadOrderDetail(orderId) {
 
     const orderDetailRes = await fetch(`${apiBaseUrl}:3003/orders/${orderId}`, {
       method: 'POST', // Changed to POST to send body
-      // credentials: 'include',
+      credentials: 'include',
       headers: {
         'Content-Type': 'application/json'
       },
