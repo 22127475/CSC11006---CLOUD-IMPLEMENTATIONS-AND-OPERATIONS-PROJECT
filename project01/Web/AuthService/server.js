@@ -85,7 +85,7 @@ app.post('/login', async (req, res) => {
     res.cookie('auth_token', token, {
       httpOnly: true,        // Không cho JavaScript truy cập
       secure: false,         // Đổi thành true nếu dùng HTTPS
-      sameSite: 'none',       // Ngăn CSRF cơ bản
+      sameSite: 'lax',       // Ngăn CSRF cơ bản
       maxAge: 3600000        // 1h
     });
 
