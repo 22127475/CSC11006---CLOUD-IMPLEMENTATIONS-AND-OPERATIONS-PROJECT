@@ -1,4 +1,4 @@
-<link rel="stylesheet" href="/css/user.css">
+<link rel="stylesheet" href="/css/user.css" />
 <section class="login-container">
   <div class="gif-section">
     <img src="/media/anim.gif" alt="Coffee Mascot" />
@@ -19,34 +19,41 @@
 </section>
 
 <script>
-  document.getElementById('registerForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    
-    const formData = {
-      username: document.querySelector('#registerForm input[type="text"]').value,
-      email: document.querySelector('#registerForm input[type="email"]').value,
-      password: document.querySelector('#registerForm input[type="password"]').value,
-      confirm_password: document.querySelectorAll('#registerForm input[type="password"]')[1].value
-    };
+  document
+    .getElementById("registerForm")
+    .addEventListener("submit", async (e) => {
+      e.preventDefault();
 
-    try {
-      const response = await fetch(`${apiBaseUrl}:3001/register`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
-      });
+      const formData = {
+        username: document.querySelector('#registerForm input[type="text"]')
+          .value,
+        email: document.querySelector('#registerForm input[type="email"]')
+          .value,
+        password: document.querySelector('#registerForm input[type="password"]')
+          .value,
+        confirm_password: document.querySelectorAll(
+          '#registerForm input[type="password"]'
+        )[1].value,
+      };
 
-      const data = await response.json();
-      
-      if (response.ok) {
-        alert('Đăng ký thành công!');
-        window.location.href = '/login';
-      } else {
-        alert(data.error || 'Đăng ký thất bại');
+      try {
+        const response = await fetch(`${apiBaseUrl}/auth/register`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(formData),
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          alert("Đăng ký thành công!");
+          window.location.href = "/login";
+        } else {
+          alert(data.error || "Đăng ký thất bại");
+        }
+      } catch (err) {
+        console.error("Lỗi:", err);
+        alert("Lỗi kết nối tới server");
       }
-    } catch (err) {
-      console.error('Lỗi:', err);
-      alert('Lỗi kết nối tới server');
-    }
-  });
+    });
 </script>

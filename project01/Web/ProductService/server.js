@@ -1,21 +1,54 @@
+require("dotenv").config(); // Nên dùng dotenv để quản lý biến môi trường
 const express = require("express");
 const cors = require("cors");
-require("dotenv").config();
-const productRoutes = require("./routes/index");
+const cookieParser = require("cookie-parser");
+
+// Import router
+const orderRoutes = require("./routes/index");
 
 const app = express();
-const port = process.env.PORT || 3002;
-const hostURL = process.env.HOST_URL || "http://localhost:8080";
-const ALB_DNS = process.env.ALB_DNS ? `http://${process.env.ALB_DNS.toLowerCase()}:8080` : 'http://localhost:8080';
+const port = process.env.PORT || 3003;
+
+// --- Cấu hình Middleware Chung ---
+
+// 1. Cấu hình CORS một cách linh hoạt
+const allowedOrigins = process.env.ALLOWED_ORIGINS
+  ? process.env.ALLOWED_ORIGINS.split(",")
+  : [];
+console.log(`[OrderService] Allowed CORS Origins:`, allowedOrigins);
+
 const corsOptions = {
-  origin: [hostURL, ALB_DNS],
-  credentials: true
-}
+  origin: function (origin, callback) {
+    // Luôn cho phép các request không có origin hoặc các origin trong whitelist
+    if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(
+        new Error(`[OrderService] Origin ${origin} not allowed by CORS`)
+      );
+    }
+  },
+  credentials: true,
+};
 app.use(cors(corsOptions));
+
+// 2. Các middleware khác
 app.use(express.json());
+app.use(cookieParser());
 
-app.use("/products", productRoutes);
+// 3. Vô hiệu hóa ETag để tránh lỗi 304 Not Modified
+app.disable("etag");
 
+// --- Gắn Router vào Ứng Dụng với Tiền Tố ---
+// TẤT CẢ các request đến /orders sẽ được điều hướng đến orderRoutes
+app.use("/orders", orderRoutes);
+
+// Route kiểm tra sức khỏe cơ bản cho Nginx/ALB
+app.get("/health", (req, res) => {
+  res.status(200).send("OK");
+});
+
+// Khởi động server
 app.listen(port, () => {
-  console.log(`Product service đang chạy tại http://localhost:${port}`);
+  console.log(`OrderService is running on port ${port}`);
 });
