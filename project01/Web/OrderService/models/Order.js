@@ -172,6 +172,8 @@ static async createOrUpdateCart({ user_id, product_ids }) {
 
     const total_price = await this.calculateTotal(mergedProductIds);
 
+    console.log(total_price);
+
     // Cập nhật cart
     const result = await pool.query(
       `UPDATE orders SET product_ids = $1, total_price = $2 WHERE id = $3 RETURNING *`,
