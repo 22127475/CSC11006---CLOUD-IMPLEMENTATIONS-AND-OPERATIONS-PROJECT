@@ -15,7 +15,7 @@
     </script>
     <%- include('header') %>
     <div class="root">
-    <% var ip = ec2IP; %>
+          <%- include(content, { ec2IP }) %>
         <%- include(content) %>
     </div>
 </body>
