@@ -1,7 +1,15 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Description: Application layer template for Project 01
 
+Parameters:
+  # Branch name to clone from the GitHub repository
+  BranchName:
+    Type: String
+    Description: The branch name to clone from the GitHub repository
+    Default: main
+
 Resources:
+  # Target Group for the Application Load Balancer and Auto Scaling Group
   TargetGroup:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Properties:
@@ -15,18 +23,11 @@ Resources:
       Matcher:
         HttpCode: 200
       TargetType: instance
-      TargetGroupAttributes:
-        - Key: stickiness.enabled
-          Value: true
-        - Key: stickiness.type
-          Value: lb_cookie
-        - Key: stickiness.lb_cookie.duration_seconds
-          Value: "86400" # 1 day
-
       Tags:
         - Key: Name
           Value: Project01-Target-Group
 
+  # Application Load Balancer
   ApplicationLoadBalancer:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
     Properties:
@@ -39,7 +40,8 @@ Resources:
         - !ImportValue Project01-Public-Subnet-1b
       SecurityGroups:
         - !ImportValue Project01-EC2-SG-ID
-        - !ImportValue Project01-EC2-DB-SG-ID
+        - !ImportValue Project01-EC2toDB-EC2-SG-ID
+        - !ImportValue Project01-EC2toElastiCache-EC2-SG-ID
       Tags:
         - Key: Name
           Value: Project01-ALB
@@ -64,8 +66,9 @@ Resources:
         ImageId: ami-02457590d33d576c3
         KeyName: project01-ec2-keypair
         SecurityGroupIds:
-          - !ImportValue Project01-EC2-SG-ID
-          - !ImportValue Project01-EC2-DB-SG-ID
+        - !ImportValue Project01-EC2-SG-ID
+        - !ImportValue Project01-EC2toDB-EC2-SG-ID
+        - !ImportValue Project01-EC2toElastiCache-EC2-SG-ID
         BlockDeviceMappings:
           - DeviceName: /dev/xvda
             Ebs:
@@ -89,7 +92,7 @@ Resources:
                 dnf install -y nodejs
 
                 # clone the repository
-                git clone -b deploy https://22127475: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@github.com/22127475/CSC11006---CLOUD-IMPLEMENTATIONS-AND-OPERATIONS-PROJECT.git /home/ec2-user/prj01
+                git clone -b ${BranchName} https://22127475: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@github.com/22127475/CSC11006---CLOUD-IMPLEMENTATIONS-AND-OPERATIONS-PROJECT.git /home/ec2-user/prj01
 
                 # make log directory
                 LOG_DIR="/home/ec2-user/logs"
@@ -102,6 +105,10 @@ Resources:
                 DB_NAME=coffee
                 DB_PASSWORD="From1to10"
                 
+                # Cache connection details
+                CACHE_ENDPOINT=${CacheEndpoint}
+                CACHE_PORT=${CachePort}
+
                 # Application details
                 APP_JWT_SECTET="my_super_secret_key_123456"
                 
@@ -160,6 +167,8 @@ Resources:
                 DB_USER=$DB_USER\n
                 DB_PASSWORD=$DB_PASSWORD\n
                 DB_NAME=$DB_NAME\n
+                ELASTICACHE_ENDPOINT=$CACHE_ENDPOINT\n
+                ELASTICACHE_PORT=$CACHE_PORT\n
                 PORT=3002\n
                 JWT_SECRET=$APP_JWT_SECTET\n
                 HOST_URL=http://$APP_URL:$APP_PORT\n
@@ -167,6 +176,7 @@ Resources:
                 
 
                 npm install
+                npm install ioredis
                 nohup node server.js > $LOG_DIR/productservice.log 2>&1 &
 
                 # Run Front-End Service
@@ -182,6 +192,8 @@ Resources:
 
             - DBEndpoint: !ImportValue Project01-Aurora-Cluster-Endpoint
               ALB_DNS: !GetAtt ApplicationLoadBalancer.DNSName
+              CacheEndpoint: !ImportValue Prj01-Cache-EndpointAddress
+              CachePort: !ImportValue Prj01-Cache-EndpointPort
 
   AutoScailingGroup:
     Type: AWS::AutoScaling::AutoScalingGroup

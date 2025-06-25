@@ -1,0 +1,50 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: >
+  CloudFormation template to create a single-node ElastiCache for Valkey cluster.
+  This template IMPORTS network resources and EXPORTS its own resources.
+
+Resources:
+  # Subnet Group for ElastiCache Cluster
+  CacheSubnetGroup:
+    Type: AWS::ElastiCache::SubnetGroup
+    Properties:
+      Description: "Subnet group for the e-commerce cache, using private subnets."
+      SubnetIds:
+        - !ImportValue Project01-Private-Subnet-1a
+        - !ImportValue Project01-Private-Subnet-1b
+      Tags:
+        - Key: Name
+          Value: Project01-Cache-Subnet-Group
+
+  # ElastiCache Cluster
+  ElastiCacheCluster:
+    Type: AWS::ElastiCache::ReplicationGroup
+    Properties:
+      ReplicationGroupDescription: "Valkey cache for e-commerce application"
+      Engine: valkey
+      EngineVersion: "8.0"
+      CacheNodeType: "cache.t3.micro"
+      CacheSubnetGroupName: !Ref CacheSubnetGroup
+      SecurityGroupIds:
+        - !ImportValue Project01-CachetoEC2-Cache-SG-ID
+      NumNodeGroups: 1
+      ReplicasPerNodeGroup: 0
+      AutomaticFailoverEnabled: false
+      MultiAZEnabled: false
+      CacheParameterGroupName: "default.valkey8"
+      TransitEncryptionEnabled: false
+      Tags:
+        - Key: Name
+          Value: Project01-ElastiCache-Cluster
+
+Outputs:
+  CacheEndpointAddress:
+    Description: "The Primary Endpoint of the ElastiCache Valkey cluster"
+    Value: !GetAtt ElastiCacheCluster.PrimaryEndPoint.Address
+    Export:
+      Name: Project01-Cache-EndpointAddress
+  CacheEndpointPort:
+    Description: "The Port of the ElastiCache Valkey cluster"
+    Value: !GetAtt ElastiCacheCluster.PrimaryEndPoint.Port
+    Export:
+      Name: Project01-Cache-EndpointPort
