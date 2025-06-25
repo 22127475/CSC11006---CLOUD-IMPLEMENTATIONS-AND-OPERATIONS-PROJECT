@@ -1,0 +1,105 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: RDS PostgreSQL Multi-AZ
+
+Resources:
+  # EC2-RDS Security Group
+  EC2SecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: SG for EC2 to access RDS
+      VpcId:
+        Fn::ImportValue: Project01-VPC-Id
+      Tags:
+        - Key: Name
+          Value: Project01-EC2-RDS
+
+  # RDS-EC2 Security Group
+  RDSSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: SG for RDS PostgreSQL allowing traffic from EC2 SG
+      VpcId:
+        Fn::ImportValue: Project01-VPC-Id
+      Tags:
+        - Key: Name
+          Value: Project01-EC2-RDS
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 5432
+          ToPort: 5432
+          SourceSecurityGroupId: !Ref EC2SecurityGroup
+
+  # Subnet group for RDS
+  DBSubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupDescription: Subnet group for RDS PostgreSQL
+      SubnetIds:
+        - Fn::ImportValue: Project01-pri-sub-1a
+        - Fn::ImportValue: Project01-pri-sub-1b
+
+  # RDS Instance
+  RDSInstance:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      DBInstanceIdentifier: project01-db
+      AllocatedStorage: 10
+      DBInstanceClass: db.t4g.micro
+      Engine: postgres
+      EngineVersion: "17.4"
+      MasterUsername: "{{resolve:secretsmanager:arn:aws:secretsmanager:us-east-1:994658328423:secret:project01/pgsql-3ROUN3:SecretString:username}}"
+      MasterUserPassword: "{{resolve:secretsmanager:arn:aws:secretsmanager:us-east-1:994658328423:secret:project01/pgsql-3ROUN3:SecretString:password}}"
+
+      DBName: coffee
+      MultiAZ: true
+      PubliclyAccessible: false
+      VPCSecurityGroups:
+        - !Ref RDSSecurityGroup
+      DBSubnetGroupName: !Ref DBSubnetGroup
+      DeletionProtection: false
+      BackupRetentionPeriod: 7
+      Tags:
+        - Key: Name
+          Value: Project01-RDS-PostgreSQL
+
+  # Read Replica for RDS Instance
+  ReadReplicaDB:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      DBInstanceIdentifier: project01-db-replica
+      SourceDBInstanceIdentifier: !Ref RDSInstance
+      AllocatedStorage: 10
+      DBInstanceClass: db.t4g.micro
+      Engine: postgres
+      EngineVersion: "17.4"
+      PubliclyAccessible: false
+      VPCSecurityGroups:
+        - !Ref RDSSecurityGroup
+      Tags:
+        - Key: Name
+          Value: Project01-RDS-PostgreSQL-Replica
+
+Outputs:
+  RDSInstanceEndpoint:
+    Description: RDS Endpoint
+    Value: !GetAtt RDSInstance.Endpoint.Address
+    Export:
+      Name: Project01-RDS-Endpoint
+
+  EC2SecurityGroupId:
+    Description: SG to attach to EC2/ASG to allow RDS access
+    Value: !Ref EC2SecurityGroup
+    Export:
+      Name: Project01-ec2-rds-sg-id
+
+  RDSSecurityGroupId:
+    Description: SG for RDS allowing connections from EC2 SG
+    Value: !Ref RDSSecurityGroup
+    Export:
+      Name: Project01-rds-ed2-sg-id
+
+  ReadReplicaEndpoint:
+    Description: Read Replica RDS Endpoint
+    Value: !GetAtt ReadReplicaDB.Endpoint.Address
+    Export:
+      Name: Project01-RDS-Replica-Endpoint

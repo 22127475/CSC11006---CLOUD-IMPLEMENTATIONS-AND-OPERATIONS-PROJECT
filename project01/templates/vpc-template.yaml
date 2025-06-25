@@ -2,8 +2,6 @@ AWSTemplateFormatVersion: "2010-09-09"
 Description: Create VPC
 
 Resources:
-  # VPC
-  # Create a VPC with a CIDR block of, This VPC used to host Aurora DB, EC2 instances and ElastiCache Valkey Cluster
   Project01VPC:
     Type: AWS::EC2::VPC
     Properties:
@@ -15,7 +13,6 @@ Resources:
           Value: Project01-VPC
 
   # Subnets
-  # Create two public subnets in different availability zones
   PublicSubnet1A:
     Type: AWS::EC2::Subnet
     Properties:
@@ -38,7 +35,6 @@ Resources:
         - Key: Name
           Value: Project01-Public-Subnet-1b
 
-  # Create two private subnets in different availability zones
   PrivateSubnet1A:
     Type: AWS::EC2::Subnet
     Properties:
@@ -62,7 +58,6 @@ Resources:
           Value: Project01-Private-Subnet-1b
 
   # Internet Gateway
-  # Create an Internet Gateway
   InternetGateway:
     Type: AWS::EC2::InternetGateway
     Properties:
@@ -70,7 +65,6 @@ Resources:
         - Key: Name
           Value: project01-IGW
 
-  # Attach the Internet Gateway to the VPC
   AttachGateway:
     Type: AWS::EC2::VPCGatewayAttachment
     Properties:
@@ -78,8 +72,6 @@ Resources:
       InternetGatewayId: !Ref InternetGateway
 
   # Route Table
-  # Create a route table for the public subnets
-  # This route table will allow traffic to the Internet Gateway
   PublicRouteTable:
     Type: AWS::EC2::RouteTable
     Properties:
@@ -88,7 +80,6 @@ Resources:
         - Key: Name
           Value: Project01-Public-Subnet-RTB
 
-  # Create a route in the public route table to allow traffic to the Internet Gateway
   PublicRoute:
     Type: AWS::EC2::Route
     DependsOn: AttachGateway
@@ -97,7 +88,6 @@ Resources:
       DestinationCidrBlock: 0.0.0.0/0
       GatewayId: !Ref InternetGateway
 
-  # Associate the public subnets with the public route table
   PublicSubnet1ARouteTableAssociation:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
@@ -110,8 +100,6 @@ Resources:
       SubnetId: !Ref PublicSubnet1B
       RouteTableId: !Ref PublicRouteTable
 
-  # Security Groups
-  # Base Security Group for EC2 instances
   InstanceSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
@@ -142,60 +130,7 @@ Resources:
         - Key: Name
           Value: Project01-EC2-SG
 
-  # Security Groups to connect EC2 instances to Aurora DB       
-  # This Security Group is for EC2 instances, let the instances connect to Aurora DB
-  EC2toAuroraDBSecurityGroup:
-    Type: AWS::EC2::SecurityGroup
-    Properties:
-      GroupDescription: SG for EC2 instances, let the instances connect to Aurora DB
-      VpcId: !Ref Project01VPC
-      Tags:
-        - Key: Name
-          Value: Project01-EC2toDB-EC2-SG
-    
-  # This Security Group is for Aurora DB, let the DB allow traffic from EC2 SG
-  AuroraDBSecurityGroup:
-    Type: AWS::EC2::SecurityGroup
-    Properties:
-      GroupDescription: SG for Aurora DB, let the DB allow traffic from EC2 SG
-      VpcId: !Ref Project01VPC
-      SecurityGroupIngress:
-        - IpProtocol: tcp
-          FromPort: 5432
-          ToPort: 5432
-          SourceSecurityGroupId: !Ref EC2toAuroraDBSecurityGroup
-      Tags:
-        - Key: Name
-          Value: Project01-DBtoEC2-DB-SG
-
-  # Security Groups to connect EC2 instances to ElastiCache Valkey Cluster
-  # This Security Group is for EC2 instances, let the instances connect to ElastiCache Valkey Cluster
-  EC2toElastiCacheSecurityGroup:
-    Type: AWS::EC2::SecurityGroup
-    Properties:
-      GroupDescription: SG for EC2 instances, let the instances connect to ElastiCache Valkey Cluster
-      VpcId: !Ref Project01VPC
-      Tags:
-        - Key: Name
-          Value: Project01-EC2toElastiCache-EC2-SG
-
-  # This Security Group is for ElastiCache Valkey Cluster, let the cluster allow traffic from EC2 SG
-  ElastiCacheSecurityGroup:
-    Type: AWS::EC2::SecurityGroup
-    Properties:
-      GroupDescription: SG for ElastiCache Valkey Cluster, let the cluster allow traffic from EC2 SG
-      VpcId: !Ref Project01VPC
-      SecurityGroupIngress:
-        - IpProtocol: tcp
-          FromPort: 6379
-          ToPort: 6379
-          SourceSecurityGroupId: !Ref EC2toElastiCacheSecurityGroup
-      Tags:
-        - Key: Name
-          Value: Project01-CachetoEC2-Cache-SG
-
 Outputs:
-  # VPC Outputs
   VPCId:
     Value: !Ref Project01VPC
     Export:
@@ -217,27 +152,7 @@ Outputs:
     Export:
       Name: Project01-Private-Subnet-1b
 
-  # Security Groups Outputs
   InstanceSecurityGroupId:
     Value: !Ref InstanceSecurityGroup
     Export:
       Name: Project01-EC2-SG-ID
-  # Security Groups to connect EC2 instances to Aurora DB Outputs
-  EC2toAuroraDBSecurityGroupId:
-    Value: !Ref EC2toAuroraDBSecurityGroup
-    Export:
-      Name: Project01-EC2toDB-EC2-SG-ID
-  AuroraDBSecurityGroupId:
-    Value: !Ref AuroraDBSecurityGroup
-    Export:
-      Name: Project01-DBtoEC2-DB-SG-ID
-  # Security Groups to connect EC2 instances to ElastiCache Valkey Cluster Outputs
-  EC2toElastiCacheSecurityGroupId:
-    Value: !Ref EC2toElastiCacheSecurityGroup
-    Export:
-      Name: Project01-EC2toElastiCache-EC2-SG-ID
-  ElastiCacheSecurityGroupId:
-    Value: !Ref ElastiCacheSecurityGroup
-    Export:
-      Name: Project01-CachetoEC2-Cache-SG-ID
-

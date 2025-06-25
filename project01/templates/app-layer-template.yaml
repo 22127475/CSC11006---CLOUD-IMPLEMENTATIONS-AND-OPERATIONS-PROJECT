@@ -2,14 +2,12 @@ AWSTemplateFormatVersion: "2010-09-09"
 Description: Application layer template for Project 01
 
 Parameters:
-  # Branch name to clone from the GitHub repository
   BranchName:
     Type: String
     Description: The branch name to clone from the GitHub repository
     Default: main
 
 Resources:
-  # Target Group for the Application Load Balancer and Auto Scaling Group
   TargetGroup:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Properties:
@@ -23,11 +21,18 @@ Resources:
       Matcher:
         HttpCode: 200
       TargetType: instance
+      TargetGroupAttributes:
+        - Key: stickiness.enabled
+          Value: true
+        - Key: stickiness.type
+          Value: lb_cookie
+        - Key: stickiness.lb_cookie.duration_seconds
+          Value: "86400" # 1 day
+
       Tags:
         - Key: Name
           Value: Project01-Target-Group
 
-  # Application Load Balancer
   ApplicationLoadBalancer:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
     Properties:
@@ -40,8 +45,7 @@ Resources:
         - !ImportValue Project01-Public-Subnet-1b
       SecurityGroups:
         - !ImportValue Project01-EC2-SG-ID
-        - !ImportValue Project01-EC2toDB-EC2-SG-ID
-        - !ImportValue Project01-EC2toElastiCache-EC2-SG-ID
+        - !ImportValue Project01-EC2-DB-SG-ID
       Tags:
         - Key: Name
           Value: Project01-ALB
@@ -66,9 +70,9 @@ Resources:
         ImageId: ami-02457590d33d576c3
         KeyName: project01-ec2-keypair
         SecurityGroupIds:
-        - !ImportValue Project01-EC2-SG-ID
-        - !ImportValue Project01-EC2toDB-EC2-SG-ID
-        - !ImportValue Project01-EC2toElastiCache-EC2-SG-ID
+          - !ImportValue Project01-EC2-SG-ID # Main security group for EC2 instances
+          - !ImportValue Project01-EC2-DB-SG-ID # Security group for EC2 to DB access
+          - !ImportValue Prj01-EC2-to-Cache-SG-ID # Security group for EC2 to Cache access
         BlockDeviceMappings:
           - DeviceName: /dev/xvda
             Ebs:
@@ -104,11 +108,11 @@ Resources:
                 DB_USER=prj01
                 DB_NAME=coffee
                 DB_PASSWORD="From1to10"
-                
+
                 # Cache connection details
                 CACHE_ENDPOINT=${CacheEndpoint}
                 CACHE_PORT=${CachePort}
-
+                
                 # Application details
                 APP_JWT_SECTET="my_super_secret_key_123456"
                 

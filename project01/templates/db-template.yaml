@@ -2,14 +2,41 @@ AWSTemplateFormatVersion: "2010-09-09"
 Description: RDS PostgreSQL Multi-AZ
 
 Resources:
+  # EC2 to DB Security Group
+  EC2SecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: SG for EC2 to access DB
+      VpcId:
+        Fn::ImportValue: Project01-VPC-ID
+      Tags:
+        - Key: Name
+          Value: Project01-EC2-DB
+
+  # Aurora to EC2 Security Group
+  DBSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: SG for DB allowing traffic from EC2 SG
+      VpcId:
+        Fn::ImportValue: Project01-VPC-ID
+      Tags:
+        - Key: Name
+          Value: Project01-DB-EC2
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 5432
+          ToPort: 5432
+          SourceSecurityGroupId: !Ref EC2SecurityGroup
+
   # Subnet group for Aurora
   DBSubnetGroup:
     Type: AWS::RDS::DBSubnetGroup
     Properties:
       DBSubnetGroupDescription: Subnet group for Aurora PostgreSQL
       SubnetIds:
-        - !ImportValue Project01-Private-Subnet-1a
-        - !ImportValue Project01-Private-Subnet-1b
+        - Fn::ImportValue: Project01-Private-Subnet-1a
+        - Fn::ImportValue: Project01-Private-Subnet-1b
       Tags:
         - Key: Name
           Value: Project01-DB-Subnet-Group
@@ -29,21 +56,20 @@ Resources:
         - Key: Name
           Value: Project01-DB-Secret
 
-  # Aurora DB Cluster with 1 instance and 1 read replica
   AuroraCluster:
     Type: AWS::RDS::DBCluster
     Properties:
       DBClusterIdentifier: project01-aurora-cluster
       Engine: aurora-postgresql
       MasterUsername:
-        !Sub: "{{resolve:secretsmanager:${DBSecret}:SecretString:username}}"
+        Fn::Sub: "{{resolve:secretsmanager:${DBSecret}:SecretString:username}}"
       MasterUserPassword:
-        !Sub: "{{resolve:secretsmanager:${DBSecret}:SecretString:password}}"
+        Fn::Sub: "{{resolve:secretsmanager:${DBSecret}:SecretString:password}}"
       DatabaseName: coffee
       DBSubnetGroupName: !Ref DBSubnetGroup
       Port: 5432
       VpcSecurityGroupIds:
-        - !ImportValue Project01-DBtoEC2-DB-SG-ID
+        - !Ref DBSecurityGroup
       BackupRetentionPeriod: 7
       DeletionProtection: false
       Tags:
@@ -61,7 +87,6 @@ Resources:
       Tags:
         - Key: Name
           Value: Project01-Aurora-Instance
-  
   AuroraReplica:
     Type: AWS::RDS::DBInstance
     Properties:
@@ -75,6 +100,16 @@ Resources:
           Value: Project01-DB-Replica
 
 Outputs:
+  EC2SecurityGroupId:
+    Description: SG to attach to EC2/ASG to allow DB access
+    Value: !Ref EC2SecurityGroup
+    Export:
+      Name: Project01-EC2-DB-SG-ID
+  DBSecurityGroupId:
+    Description: SG for db allowing connections from EC2 SG
+    Value: !Ref DBSecurityGroup
+    Export:
+      Name: Project01-DB-EC2-SG-ID
   DBSecretArn:
     Description: ARN of the DB secret
     Value: !Ref DBSecret
