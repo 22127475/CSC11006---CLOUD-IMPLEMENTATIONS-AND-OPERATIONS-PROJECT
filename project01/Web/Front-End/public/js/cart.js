@@ -1,8 +1,20 @@
 let cartItemCount = 0; // Biến toàn cục để lưu số sản phẩm trong giỏ hàng
 
+  function showToast(message) {
+  const toast = document.getElementById('toast-message');
+  toast.textContent = message;
+  toast.classList.remove('hidden');
+  toast.classList.add('show');
+
+  setTimeout(() => {
+    toast.classList.remove('show');
+    toast.classList.add('hidden');
+  }, 3000); // Hiển thị trong 3 giây
+}
+
 async function loadCartPage() {
   try {
-    const userRes = await fetch('http://localhost:3001/', {
+    const userRes = await fetch(`${apiBaseUrl}:3001/`, {
       method: 'GET',
       credentials: 'include'
     });
@@ -12,13 +24,13 @@ async function loadCartPage() {
     const user = userData.user;
 
     if (!user || !user.id) {
-        alert('Vui lòng đăng nhập trước khi xem giỏ hàng');
+        showToast('Vui lòng đăng nhập trước khi xem giỏ hàng');
         return;
     }
 
     document.getElementById('name').value = user.username || 'Chưa rõ';
 
-    const cartRes = await fetch(`http://localhost:3003/orders/cart/${user.id}`);
+    const cartRes = await fetch(`${apiBaseUrl}:3003/orders/cart/${user.id}`);
     if (!cartRes.ok) throw new Error('Không thể lấy giỏ hàng');
     const cartItems = await cartRes.json();
 
@@ -56,7 +68,7 @@ async function loadCartPage() {
     document.querySelectorAll('.insc').forEach(btn => {
       btn.addEventListener('click', async () => {
         const productId = btn.getAttribute('data-product-id');
-        await fetch('http://localhost:3003/orders/cart/add', {
+        await fetch(`${apiBaseUrl}:3003/orders/cart/add`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
@@ -70,7 +82,7 @@ async function loadCartPage() {
     document.querySelectorAll('.desc').forEach(btn => {
       btn.addEventListener('click', async () => {
         const productId = btn.getAttribute('data-product-id');
-        await fetch('http://localhost:3003/orders/cart/decrease', {
+        await fetch(`${apiBaseUrl}:3003/orders/cart/decrease`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
@@ -83,7 +95,7 @@ async function loadCartPage() {
 
   } catch (err) {
     console.error('Lỗi khi tải dữ liệu:', err);
-    alert('Không thể tải dữ liệu giỏ hàng.');
+    showToast('Không thể tải dữ liệu giỏ hàng.');
   }
 }
 
@@ -94,27 +106,32 @@ document.querySelector('.checkout-button').addEventListener('click', async () =>
   const phone = document.getElementById('phone').value;
 
   if (!address || !phone) {
-    alert('Vui lòng nhập đầy đủ địa chỉ và số điện thoại');
+    showToast('Vui lòng nhập đầy đủ địa chỉ và số điện thoại');
     return;
   }
 
   if (cartItemCount === 0) {
-    alert('Giỏ hàng đang trống. Vui lòng thêm sản phẩm trước khi thanh toán.');
+    showToast('Giỏ hàng đang trống. Vui lòng thêm sản phẩm trước khi thanh toán.');
     return;
   }
 
   try {
-    const userRes = await fetch('http://localhost:3001/', {
+    const userRes = await fetch(`${apiBaseUrl}:3001/`, {
       credentials: 'include',
     });
 
     if (!userRes.ok) throw new Error('Không thể lấy thông tin người dùng');
     const userData = await userRes.json();
     const user_id = userData.user?.id;
+    const email = userData.user?.email;
 
     if (!user_id) throw new Error('Không có user_id');
 
-    const checkoutRes = await fetch('http://localhost:3003/orders/checkout', {
+    const cartRes = await fetch(`${apiBaseUrl}:3003/orders/cart/${user_id}`);
+    if (!cartRes.ok) throw new Error('Không thể lấy giỏ hàng');
+    const cartData = await cartRes.json();
+
+    const checkoutRes = await fetch(`${apiBaseUrl}:3003/orders/checkout`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -129,15 +146,26 @@ document.querySelector('.checkout-button').addEventListener('click', async () =>
     const result = await checkoutRes.json();
 
     if (checkoutRes.ok) {
-      alert('Thanh toán thành công!');
+        await fetch("https://kohvuu5txks63tcmxtcoyg3qe40tkwgi.lambda-url.us-east-1.on.aws/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email,
+          name: name,
+          address,
+          phone,
+          order: cartData 
+        })
+      });
+      showToast('Thanh toán thành công!');
       location.reload(); // Hoặc chuyển hướng sang trang đơn hàng
     } else {
-      alert('Lỗi khi thanh toán: ' + result.message);
+      showToast('Lỗi khi thanh toán: ' + result.message);
     }
 
   } catch (error) {
     console.error('Lỗi:', error);
-    alert('Đã xảy ra lỗi khi xử lý thanh toán');
+    showToast('Đã xảy ra lỗi khi xử lý thanh toán');
   }
 });
 document.addEventListener('DOMContentLoaded', loadCartPage);

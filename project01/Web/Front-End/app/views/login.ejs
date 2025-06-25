@@ -20,7 +20,7 @@
   document.addEventListener('DOMContentLoaded', async () => {
   // Kiểm tra đăng nhập khi trang load
   try {
-    const response = await fetch('http://localhost:3001/check-auth', {
+    const response = await fetch(`${apiBaseUrl}:3001/check-auth`, {
       credentials: 'include' // Quan trọng để gửi cookie
     });
     
@@ -44,7 +44,7 @@
     };
 
     try {
-      const response = await fetch('http://localhost:3001/login', {
+      const response = await fetch(`${apiBaseUrl}:3001/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
@@ -54,7 +54,6 @@
       const data = await response.json();
       if (response.ok) {
       localStorage.setItem('domUpdated', 'false'); // Reset trạng thái DOM
-      alert('Đăng nhập thành công!');
       window.location.href = '/'; // Trang chủ
       } else {
         alert(data.error || 'Đăng nhập thất bại');

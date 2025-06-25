@@ -11,10 +11,23 @@
     </div>
   </div>
 </section>
+<div id="toast-message" class="toast hidden"></div>
 <script>
+  function showToast(message) {
+  const toast = document.getElementById('toast-message');
+  toast.textContent = message;
+  toast.classList.remove('hidden');
+  toast.classList.add('show');
+
+  setTimeout(() => {
+    toast.classList.remove('show');
+    toast.classList.add('hidden');
+  }, 3000); // Hiển thị trong 3 giây
+}
+
   async function fetchProducts() {
     try {
-      const response = await fetch('http://localhost:3002/products'); 
+      const response = await fetch(`${apiBaseUrl}:3002/products`); 
       const products = await response.json();
 
       const productList = document.getElementById('product-list');
@@ -36,8 +49,9 @@
       document.querySelectorAll('.buy-button').forEach(button => {
         button.addEventListener('click', async (e) => {
         const productId = e.target.dataset.id;
+
         try {
-          const response = await fetch('http://localhost:3001/', {
+          const response = await fetch(`${apiBaseUrl}:3001/`, {
             method: 'GET',
             credentials: 'include' // Đảm bảo cookie được gửi (để xác thực phiên)
           });
@@ -53,7 +67,7 @@
           }
 
           // Gửi yêu cầu thêm sản phẩm vào giỏ hàng
-          const res = await fetch('http://localhost:3003/orders/cart/add', {
+          const res = await fetch(`${apiBaseUrl}:3003/orders/cart/add`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json'
@@ -68,13 +82,13 @@
           const result = await res.json();
 
           if (res.ok) {
-            alert(`Đã thêm sản phẩm vào giỏ hàng!`);
+            showToast('Đã thêm sản phẩm vào giỏ hàng!');
           } else {
             alert(`Lỗi: ${result.error}`);
           }
         } catch (err) {
           console.error('Lỗi khi thêm vào giỏ hàng:', err);
-          alert('Không thể thêm vào giỏ hàng.');
+          showToast('Không thể thêm vào giỏ hàng.');
         }
       });
       });
@@ -160,6 +174,7 @@
     .product-card p {
         font-size: 20px;
     }
+
     @media screen and (max-width: 1080px) {
     .product-list {
         grid-template-columns: repeat(2, 1fr);
