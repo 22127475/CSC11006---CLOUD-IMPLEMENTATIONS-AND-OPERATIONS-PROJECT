@@ -36,9 +36,9 @@ Resources:
       DBClusterIdentifier: project01-aurora-cluster
       Engine: aurora-postgresql
       MasterUsername:
-        !Sub: "{{resolve:secretsmanager:${DBSecret}:SecretString:username}}"
+        !Sub "{{resolve:secretsmanager:${DBSecret}:SecretString:username}}"
       MasterUserPassword:
-        !Sub: "{{resolve:secretsmanager:${DBSecret}:SecretString:password}}"
+        !Sub "{{resolve:secretsmanager:${DBSecret}:SecretString:password}}"
       DatabaseName: coffee
       DBSubnetGroupName: !Ref DBSubnetGroup
       Port: 5432

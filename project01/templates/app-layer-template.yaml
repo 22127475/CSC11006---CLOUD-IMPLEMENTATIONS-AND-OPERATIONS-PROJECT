@@ -192,8 +192,8 @@ Resources:
 
             - DBEndpoint: !ImportValue Project01-Aurora-Cluster-Endpoint
               ALB_DNS: !GetAtt ApplicationLoadBalancer.DNSName
-              CacheEndpoint: !ImportValue Prj01-Cache-EndpointAddress
-              CachePort: !ImportValue Prj01-Cache-EndpointPort
+              CacheEndpoint: !ImportValue Project01-Cache-EndpointAddress
+              CachePort: !ImportValue Project01-Cache-EndpointPort
 
   AutoScailingGroup:
     Type: AWS::AutoScaling::AutoScalingGroup
