@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: "2010-09-09"
-Description: RDS PostgreSQL Multi-AZ
+Description: Database layer template for Project 01 (RDS Aurora PostgreSQL, RDS Proxy, Secrets Manager, IAM role)
 
 Resources:
   # EC2 to DB Security Group
@@ -23,11 +23,6 @@ Resources:
       Tags:
         - Key: Name
           Value: Project01-DB-EC2
-      SecurityGroupIngress:
-        - IpProtocol: tcp
-          FromPort: 5432
-          ToPort: 5432
-          SourceSecurityGroupId: !Ref EC2SecurityGroup
 
   # Subnet group for Aurora
   DBSubnetGroup:
@@ -56,6 +51,7 @@ Resources:
         - Key: Name
           Value: Project01-DB-Secret
 
+  # RDS Aurora PostgreSQL Cluster(1 Instances + 1 Replica)
   AuroraCluster:
     Type: AWS::RDS::DBCluster
     Properties:
@@ -99,6 +95,82 @@ Resources:
         - Key: Name
           Value: Project01-DB-Replica
 
+  # RDS Proxy for Aurora
+  # IAM role for RDS Proxy to access Secrets Manager
+  RDSProxyRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: rds.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: RDSProxySecretAccessPolicy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: "secretsmanager:GetSecretValue"
+                Resource: !Ref DBSecret
+
+  # EC2 to RDS Proxy Security Group
+  RDSProxySecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: "Allows inbound traffic from EC2 instances to the RDS Proxy"
+      VpcId: !ImportValue Project01-VPC-ID
+      Tags:
+        - Key: Name
+          Value: "Project01-RDS-Proxy-SG"
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 5432
+          ToPort: 5432
+          SourceSecurityGroupId: !Ref EC2SecurityGroup
+
+  # Ingress rule to allow RDS Proxy to connect to Aurora
+  ProxyToAuroraIngressRule:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      GroupId: !Ref DBSecurityGroup
+      IpProtocol: tcp
+      FromPort: 5432
+      ToPort: 5432
+      SourceSecurityGroupId: !Ref RDSProxySecurityGroup
+
+  # RDS Proxy for Aurora PostgreSQL
+  RDSProxy:
+    Type: AWS::RDS::DBProxy
+    DependsOn: AuroraCluster
+    Properties:
+      DBProxyName: "Project01-Aurora-Proxy"
+      EngineFamily: "POSTGRESQL"
+      RoleArn: !GetAtt RDSProxyRole.Arn
+      Auth:
+        - AuthScheme: SECRETS
+          IAMAuth: DISABLED
+          SecretArn: !Ref DBSecret
+      VpcSubnetIds:
+        - !ImportValue Project01-Private-Subnet-1a
+        - !ImportValue Project01-Private-Subnet-1b
+      VpcSecurityGroupIds:
+        - !Ref RDSProxySecurityGroup
+      RequireTLS: true
+      Tags:
+        - Key: Name
+          Value: "Project01-Aurora-Proxy"
+
+  # RDS Proxy Target Group for Aurora
+  ProxyDefaultTargetGroup:
+    Type: AWS::RDS::DBProxyTargetGroup
+    Properties:
+      DBProxyName: !Ref RDSProxy
+      DBClusterIdentifiers:
+        - !Ref AuroraCluster
+
 Outputs:
   EC2SecurityGroupId:
     Description: SG to attach to EC2/ASG to allow DB access
@@ -140,3 +212,13 @@ Outputs:
     Value: !GetAtt AuroraReplica.Endpoint.Address
     Export:
       Name: Project01-Aurora-Replica-Endpoint
+  RDSProxyEndpoint:
+    Description: "The connection endpoint for the RDS Proxy. USE THIS in your application."
+    Value: !GetAtt RDSProxy.Endpoint
+    Export:
+      Name: "Project01-RDS-Proxy-Endpoint"
+  RDSProxySecurityGroupId:
+    Description: "The Security Group ID for the RDS Proxy."
+    Value: !Ref RDSProxySecurityGroup
+    Export:
+      Name: "Project01-RDS-Proxy-SG-ID"
