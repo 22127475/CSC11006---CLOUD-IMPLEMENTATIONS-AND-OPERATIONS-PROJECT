@@ -15,8 +15,11 @@
     </script>
     <%- include('header') %>
     <div class="root">
-          <%- include(content, { ec2IP }) %>
-        
+        <% if (typeof ec2IP !== 'undefined') { %>
+            <%- include(content, { ec2IP }) %>
+        <% } else { %>
+            <%- include(content) %>
+        <% } %>
     </div>
 </body>
 </html>
