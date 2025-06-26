@@ -166,8 +166,10 @@ Resources:
   # RDS Proxy Target Group for Aurora
   ProxyDefaultTargetGroup:
     Type: AWS::RDS::DBProxyTargetGroup
+    DependsOn: AuroraCluster
     Properties:
       DBProxyName: !Ref RDSProxy
+      TargetGroupName: "default"
       DBClusterIdentifiers:
         - !Ref AuroraCluster
 
