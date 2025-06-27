@@ -208,6 +208,45 @@ Resources:
         - Key: Name
           Value: Project01-ASG
           PropagateAtLaunch: true
+  RequestCountScalingPolicy:
+    Type: AWS::AutoScaling::ScalingPolicy
+    Properties:
+      AutoScalingGroupName: !Ref AutoScailingGroup
+      PolicyType: TargetTrackingScaling
+      TargetTrackingConfiguration:
+        PredefinedMetricSpecification:
+          PredefinedMetricType: ALBRequestCountPerTarget
+          ResourceLabel: !Sub
+            - "app/${ALBName}/${ALBId}/targetgroup/${TGName}/${TGId}"
+            - ALBName:
+                !Select [
+                  1,
+                  !Split [
+                    "/",
+                    !GetAtt ApplicationLoadBalancer.LoadBalancerFullName,
+                  ],
+                ]
+              ALBId:
+                !Select [
+                  2,
+                  !Split [
+                    "/",
+                    !GetAtt ApplicationLoadBalancer.LoadBalancerFullName,
+                  ],
+                ]
+              TGName:
+                !Select [
+                  1,
+                  !Split ["/", !GetAtt TargetGroup.TargetGroupFullName],
+                ]
+              TGId:
+                !Select [
+                  2,
+                  !Split ["/", !GetAtt TargetGroup.TargetGroupFullName],
+                ]
+        TargetValue: 50.0
+        DisableScaleIn: false
+
 Outputs:
   TargetGroupArn:
     Description: ARN of the target group

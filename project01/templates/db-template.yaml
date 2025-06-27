@@ -144,7 +144,10 @@ Resources:
   # RDS Proxy for Aurora PostgreSQL
   RDSProxy:
     Type: AWS::RDS::DBProxy
-    DependsOn: AuroraCluster
+    DependsOn:
+      - AuroraCluster
+      - AuroraInstance
+      - AuroraReplica
     Properties:
       DBProxyName: "Project01-Aurora-Proxy"
       EngineFamily: "POSTGRESQL"
@@ -166,7 +169,10 @@ Resources:
   # RDS Proxy Target Group for Aurora
   ProxyDefaultTargetGroup:
     Type: AWS::RDS::DBProxyTargetGroup
-    DependsOn: AuroraCluster
+    DependsOn:
+      - AuroraCluster
+      - AuroraInstance
+      - AuroraReplica
     Properties:
       DBProxyName: !Ref RDSProxy
       TargetGroupName: "default"

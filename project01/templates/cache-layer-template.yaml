@@ -3,8 +3,6 @@ Description: >
   CloudFormation template to create a single-node ElastiCache for Valkey cluster.
   This template IMPORTS network resources and EXPORTS its own resources.
 
-# Phần Parameters đã được xóa bỏ để dùng ImportValue
-
 Resources:
   # Resource 0: Tạo Security Group cho EC2 app host để cho phép truy cập vào ElastiCache
   AppSecurityGroup:
