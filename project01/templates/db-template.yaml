@@ -2,36 +2,14 @@ AWSTemplateFormatVersion: "2010-09-09"
 Description: Database layer template for Project 01 (RDS Aurora PostgreSQL, RDS Proxy, Secrets Manager, IAM role)
 
 Resources:
-  # EC2 to DB Security Group
-  EC2SecurityGroup:
-    Type: AWS::EC2::SecurityGroup
-    Properties:
-      GroupDescription: SG for EC2 to access DB
-      VpcId:
-        Fn::ImportValue: Project01-VPC-ID
-      Tags:
-        - Key: Name
-          Value: Project01-EC2-DB
-
-  # Aurora to EC2 Security Group
-  DBSecurityGroup:
-    Type: AWS::EC2::SecurityGroup
-    Properties:
-      GroupDescription: SG for DB allowing traffic from EC2 SG
-      VpcId:
-        Fn::ImportValue: Project01-VPC-ID
-      Tags:
-        - Key: Name
-          Value: Project01-DB-EC2
-
   # Subnet group for Aurora
   DBSubnetGroup:
     Type: AWS::RDS::DBSubnetGroup
     Properties:
       DBSubnetGroupDescription: Subnet group for Aurora PostgreSQL
       SubnetIds:
-        - Fn::ImportValue: Project01-Private-Subnet-1a
-        - Fn::ImportValue: Project01-Private-Subnet-1b
+        - !ImportValue Project01-Private-Subnet-1a
+        - !ImportValue Project01-Private-Subnet-1b
       Tags:
         - Key: Name
           Value: Project01-DB-Subnet-Group
@@ -51,21 +29,21 @@ Resources:
         - Key: Name
           Value: Project01-DB-Secret
 
-  # RDS Aurora PostgreSQL Cluster(1 Instances + 1 Replica)
+  # Aurora DB Cluster with 1 instance and 1 read replica
   AuroraCluster:
     Type: AWS::RDS::DBCluster
     Properties:
       DBClusterIdentifier: project01-aurora-cluster
       Engine: aurora-postgresql
       MasterUsername:
-        Fn::Sub: "{{resolve:secretsmanager:${DBSecret}:SecretString:username}}"
+        !Sub "{{resolve:secretsmanager:${DBSecret}:SecretString:username}}"
       MasterUserPassword:
-        Fn::Sub: "{{resolve:secretsmanager:${DBSecret}:SecretString:password}}"
+        !Sub "{{resolve:secretsmanager:${DBSecret}:SecretString:password}}"
       DatabaseName: coffee
       DBSubnetGroupName: !Ref DBSubnetGroup
       Port: 5432
       VpcSecurityGroupIds:
-        - !Ref DBSecurityGroup
+        - !ImportValue Project01-DB-SG-ID
       BackupRetentionPeriod: 7
       DeletionProtection: false
       Tags:
@@ -83,6 +61,7 @@ Resources:
       Tags:
         - Key: Name
           Value: Project01-Aurora-Instance
+  
   AuroraReplica:
     Type: AWS::RDS::DBInstance
     Properties:
@@ -116,31 +95,6 @@ Resources:
                 Action: "secretsmanager:GetSecretValue"
                 Resource: !Ref DBSecret
 
-  # EC2 to RDS Proxy Security Group
-  RDSProxySecurityGroup:
-    Type: AWS::EC2::SecurityGroup
-    Properties:
-      GroupDescription: "Allows inbound traffic from EC2 instances to the RDS Proxy"
-      VpcId: !ImportValue Project01-VPC-ID
-      Tags:
-        - Key: Name
-          Value: "Project01-RDS-Proxy-SG"
-      SecurityGroupIngress:
-        - IpProtocol: tcp
-          FromPort: 5432
-          ToPort: 5432
-          SourceSecurityGroupId: !Ref EC2SecurityGroup
-
-  # Ingress rule to allow RDS Proxy to connect to Aurora
-  ProxyToAuroraIngressRule:
-    Type: AWS::EC2::SecurityGroupIngress
-    Properties:
-      GroupId: !Ref DBSecurityGroup
-      IpProtocol: tcp
-      FromPort: 5432
-      ToPort: 5432
-      SourceSecurityGroupId: !Ref RDSProxySecurityGroup
-
   # RDS Proxy for Aurora PostgreSQL
   RDSProxy:
     Type: AWS::RDS::DBProxy
@@ -157,7 +111,7 @@ Resources:
         - !ImportValue Project01-Private-Subnet-1a
         - !ImportValue Project01-Private-Subnet-1b
       VpcSecurityGroupIds:
-        - !Ref RDSProxySecurityGroup
+        - !ImportValue Project01-RDSProxy-SG-ID
       RequireTLS: true
       Tags:
         - Key: Name
@@ -174,16 +128,6 @@ Resources:
         - !Ref AuroraCluster
 
 Outputs:
-  EC2SecurityGroupId:
-    Description: SG to attach to EC2/ASG to allow DB access
-    Value: !Ref EC2SecurityGroup
-    Export:
-      Name: Project01-EC2-DB-SG-ID
-  DBSecurityGroupId:
-    Description: SG for db allowing connections from EC2 SG
-    Value: !Ref DBSecurityGroup
-    Export:
-      Name: Project01-DB-EC2-SG-ID
   DBSecretArn:
     Description: ARN of the DB secret
     Value: !Ref DBSecret
@@ -219,8 +163,3 @@ Outputs:
     Value: !GetAtt RDSProxy.Endpoint
     Export:
       Name: "Project01-RDS-Proxy-Endpoint"
-  RDSProxySecurityGroupId:
-    Description: "The Security Group ID for the RDS Proxy."
-    Value: !Ref RDSProxySecurityGroup
-    Export:
-      Name: "Project01-RDS-Proxy-SG-ID"

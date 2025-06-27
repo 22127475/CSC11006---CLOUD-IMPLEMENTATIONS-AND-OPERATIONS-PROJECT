@@ -1,13 +1,15 @@
 AWSTemplateFormatVersion: "2010-09-09"
-Description: Application layer template for Project 01
+Description: Application layer template for Project 01 (Web Services, Application Load Balancer, Auto Scaling Group, EC2 Launch Template)
 
 Parameters:
+  # BranchName to clone from the GitHub repository
   BranchName:
     Type: String
     Description: The branch name to clone from the GitHub repository
     Default: main
 
 Resources:
+  # Target Group for the Application Load Balancer and Auto Scaling Group
   TargetGroup:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Properties:
@@ -25,6 +27,7 @@ Resources:
         - Key: Name
           Value: Project01-Target-Group
 
+  # Application Load Balancer
   ApplicationLoadBalancer:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
     Properties:
@@ -36,9 +39,12 @@ Resources:
         - !ImportValue Project01-Public-Subnet-1a
         - !ImportValue Project01-Public-Subnet-1b
       SecurityGroups:
-        - !ImportValue Project01-EC2-SG-ID
-        - !ImportValue Project01-EC2-DB-SG-ID
-
+          - !ImportValue Project01-EC2-SG-ID
+          - !ImportValue Project01-EC2toRDSProxy-EC2-SG-ID
+          - !ImportValue Project01-EC2toElastiCache-EC2-SG-ID
+      Tags:
+        - Key: Name
+          Value: Project01-ALB
   ApplicationLoadBalancerListener:
     Type: AWS::ElasticLoadBalancingV2::Listener
     Properties:
@@ -51,6 +57,8 @@ Resources:
       Tags:
         - Key: Name
           Value: Project01-ALB-Listener
+
+  # EC2 Launch Template for the Auto Scaling Group
   EC2LaunchTemplate:
     Type: AWS::EC2::LaunchTemplate
     Properties:
@@ -61,8 +69,8 @@ Resources:
         KeyName: project01-ec2-keypair
         SecurityGroupIds:
           - !ImportValue Project01-EC2-SG-ID # Main security group for EC2 instances
-          - !ImportValue Project01-EC2-DB-SG-ID # Security group for EC2 to DB access
-          - !ImportValue Prj01-EC2-to-Cache-SG-ID # Security group for EC2 to Cache access
+          - !ImportValue Project01-EC2toRDSProxy-EC2-SG-ID # Security group for EC2 to RDS Proxy communication
+          - !ImportValue Project01-EC2toElastiCache-EC2-SG-ID # Security group for EC2 to ElastiCache communication
         BlockDeviceMappings:
           - DeviceName: /dev/xvda
             Ebs:
@@ -93,7 +101,7 @@ Resources:
                 mkdir -p $LOG_DIR
                 
                 # DB connection details
-                DB_HOST=${DBEndpoint}
+                DB_HOST=${RDSProxyEndpoint}
                 DB_PORT=5432
                 DB_USER=prj01
                 DB_NAME=coffee
@@ -185,7 +193,7 @@ Resources:
                 npm install
                 nohup node app.js > $LOG_DIR/FEservice.log 2>&1 &
 
-            - DBEndpoint: !ImportValue Project01-RDS-Proxy-Endpoint
+            - RDSProxyEndpoint: !ImportValue Project01-RDS-Proxy-Endpoint
               ALB_DNS: !GetAtt ApplicationLoadBalancer.DNSName
               CacheEndpoint: !ImportValue Prj01-Cache-EndpointAddress
               CachePort: !ImportValue Prj01-Cache-EndpointPort
