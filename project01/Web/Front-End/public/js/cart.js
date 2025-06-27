@@ -146,7 +146,7 @@ document.querySelector('.checkout-button').addEventListener('click', async () =>
     const result = await checkoutRes.json();
 
     if (checkoutRes.ok) {
-        await fetch("https://kohvuu5txks63tcmxtcoyg3qe40tkwgi.lambda-url.us-east-1.on.aws/", {
+        await fetch("https://qkrbnx7vsuva66nis2zmnekdfe0mpqri.lambda-url.us-east-1.on.aws/", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
