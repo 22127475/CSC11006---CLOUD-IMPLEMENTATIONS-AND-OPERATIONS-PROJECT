@@ -83,15 +83,8 @@ app.post('/login', async (req, res) => {
     const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '1h' });
 
     // Gửi cookie
-    res.cookie('auth_token', token, {
-      httpOnly: true,        // Không cho JavaScript truy cập
-      secure: true,         // Đổi thành true nếu dùng HTTPS
-      sameSite: 'none',       // Ngăn CSRF cơ bản
-      maxAge: 3600000        // 1h
-    });
-
-
-    res.json({ message: 'Đăng nhập thành công' });
+    res.status(200).json({auth_token: token, message: 'Đăng nhập thành công'});
+    
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Lỗi hệ thống' });
