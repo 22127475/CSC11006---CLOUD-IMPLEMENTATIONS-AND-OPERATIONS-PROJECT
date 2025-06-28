@@ -78,6 +78,7 @@ async function fetchCurrentUser() {
         });
 
         if (response.ok) {
+          deleteCookie('auth_token'); // Xoá cookie auth_token
           window.location.href = '/'; 
         } else {
           alert("Đăng xuất thất bại. Vui lòng thử lại.");
@@ -89,4 +90,8 @@ async function fetchCurrentUser() {
     });
   }
 
-  });
+  function deleteCookie(name) {
+    document.cookie = name +'=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+  }
+
+});

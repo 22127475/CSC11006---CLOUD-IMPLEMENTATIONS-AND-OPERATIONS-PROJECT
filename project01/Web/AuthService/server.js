@@ -84,7 +84,7 @@ app.post('/login', async (req, res) => {
 
     // Gửi cookie
     res.status(200).json({auth_token: token, message: 'Đăng nhập thành công'});
-    
+
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Lỗi hệ thống' });
@@ -92,13 +92,7 @@ app.post('/login', async (req, res) => {
 });
 
 app.post('/logout', (req, res) => {
-  res.clearCookie('auth_token', {
-    httpOnly: true,
-    secure: true,
-    sameSite: 'none',
-  });
-
-  res.json({ message: 'Đăng xuất thành công' });
+  res.status(200).json({ message: 'Đăng xuất thành công' });
 });
 
 app.listen(port, () => {
