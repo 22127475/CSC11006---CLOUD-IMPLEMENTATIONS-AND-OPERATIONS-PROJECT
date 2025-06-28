@@ -134,7 +134,6 @@ Resources:
                 
                 
                 npm install
-                npm install react
                 # node server.js &
                 nohup node server.js > $LOG_DIR/authservice.log 2>&1 &
 

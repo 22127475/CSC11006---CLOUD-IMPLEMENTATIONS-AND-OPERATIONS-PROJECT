@@ -6,7 +6,6 @@ const port = process.env.PORT || 3001;
 const cookieParser = require('cookie-parser');
 const jwt = require('jsonwebtoken');
 const authMiddleware = require('./middleware/auth');
-const { use } = require('react');
 app.use(cookieParser());
 
 // disable etag
@@ -87,7 +86,7 @@ app.post('/login', async (req, res) => {
     res.cookie('auth_token', token, {
       httpOnly: true,        // Không cho JavaScript truy cập
       secure: false,         // Đổi thành true nếu dùng HTTPS
-      sameSite: 'lax',       // Ngăn CSRF cơ bản
+      sameSite: 'none',       // Ngăn CSRF cơ bản
       maxAge: 3600000        // 1h
     });
 
@@ -103,7 +102,7 @@ app.post('/logout', (req, res) => {
   res.clearCookie('auth_token', {
     httpOnly: true,
     secure: false,
-    sameSite: 'lax',
+    sameSite: 'none',
   });
 
   res.json({ message: 'Đăng xuất thành công' });
