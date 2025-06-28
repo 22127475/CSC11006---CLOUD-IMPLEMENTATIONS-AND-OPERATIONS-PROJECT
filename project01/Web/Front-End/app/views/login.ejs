@@ -46,7 +46,9 @@
     try {
       const response = await fetch(`${apiBaseUrl}:3001/login`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*' },
         body: JSON.stringify(formData),
         credentials: 'include' // Quan trọng: cho phép gửi/nhận cookie
       });
