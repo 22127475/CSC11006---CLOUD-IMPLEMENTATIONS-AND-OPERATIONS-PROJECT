@@ -39,9 +39,7 @@ Resources:
         - !ImportValue Project01-Public-Subnet-1a
         - !ImportValue Project01-Public-Subnet-1b
       SecurityGroups:
-          - !ImportValue Project01-EC2-SG-ID
-          - !ImportValue Project01-EC2toRDSProxy-EC2-SG-ID
-          - !ImportValue Project01-EC2toElastiCache-EC2-SG-ID
+        - !ImportValue Project01-ALB-SG-ID
       Tags:
         - Key: Name
           Value: Project01-ALB
@@ -68,9 +66,7 @@ Resources:
         ImageId: ami-02457590d33d576c3
         KeyName: project01-ec2-keypair
         SecurityGroupIds:
-          - !ImportValue Project01-EC2-SG-ID # Main security group for EC2 instances
-          - !ImportValue Project01-EC2toRDSProxy-EC2-SG-ID # Security group for EC2 to RDS Proxy communication
-          - !ImportValue Project01-EC2toElastiCache-EC2-SG-ID # Security group for EC2 to ElastiCache communication
+          - !ImportValue Project01-App-Tier-SG-ID
         BlockDeviceMappings:
           - DeviceName: /dev/xvda
             Ebs:
@@ -195,8 +191,8 @@ Resources:
 
             - RDSProxyEndpoint: !ImportValue Project01-RDS-Proxy-Endpoint
               ALB_DNS: !GetAtt ApplicationLoadBalancer.DNSName
-              CacheEndpoint: !ImportValue Prj01-Cache-EndpointAddress
-              CachePort: !ImportValue Prj01-Cache-EndpointPort
+              CacheEndpoint: !ImportValue Project01-Cache-EndpointAddress
+              CachePort: !ImportValue Project01-Cache-EndpointPort
 
   AutoScailingGroup:
     Type: AWS::AutoScaling::AutoScalingGroup

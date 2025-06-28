@@ -24,7 +24,7 @@ Resources:
       CacheNodeType: "cache.t3.micro"
       CacheSubnetGroupName: !Ref CacheSubnetGroup
       SecurityGroupIds:
-        - !ImportValue Project01-Cache-SG-ID
+        - !ImportValue Project01-Cache-Tier-SG-ID
       NumNodeGroups: 1
       ReplicasPerNodeGroup: 0
       AutomaticFailoverEnabled: false

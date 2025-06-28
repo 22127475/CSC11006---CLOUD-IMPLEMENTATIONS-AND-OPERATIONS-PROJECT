@@ -43,7 +43,7 @@ Resources:
       DBSubnetGroupName: !Ref DBSubnetGroup
       Port: 5432
       VpcSecurityGroupIds:
-        - !ImportValue Project01-DB-SG-ID
+        - !ImportValue Project01-Data-Tier-SG-ID
       BackupRetentionPeriod: 7
       DeletionProtection: false
       Tags:
@@ -111,7 +111,7 @@ Resources:
         - !ImportValue Project01-Private-Subnet-1a
         - !ImportValue Project01-Private-Subnet-1b
       VpcSecurityGroupIds:
-        - !ImportValue Project01-RDSProxy-SG-ID
+        - !ImportValue Project01-Proxy-Tier-SG-ID
       RequireTLS: true
       Tags:
         - Key: Name

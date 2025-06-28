@@ -112,104 +112,113 @@ Resources:
       RouteTableId: !Ref PublicRouteTable
 
   # Security Groups
-  # Base Security Group for EC2 instances
-  InstanceSecurityGroup:
+  # SG for the Application Load Balancer
+  # Allows inbound web traffic from the internet.
+  ALBSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      GroupDescription: Allow SSH
+      GroupDescription: "Security Group for the Application Load Balancer"
       VpcId: !Ref Project01VPC
       SecurityGroupIngress:
-        - IpProtocol: tcp
-          FromPort: 22
-          ToPort: 22
-          CidrIp: 0.0.0.0/0
         - IpProtocol: tcp
           FromPort: 8080
           ToPort: 8080
           CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: Name
+          Value: Project01-ALB-SG
+
+  # SG for the Application Tier (EC2 Instances)
+  # Allows traffic from the ALB and SSH for management.
+  AppTierSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: "Security Group for the Application Tier (EC2 Instances)"
+      VpcId: !Ref Project01VPC
+      SecurityGroupIngress:
+        # Rule for SSH access for management
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+        # Rule for Front-End/debugging access on port 8080 from anywhere
+        - IpProtocol: tcp
+          FromPort: 8080
+          ToPort: 8080
+          CidrIp: 0.0.0.0/0
+        # Rule for services to communicate with each other
         - IpProtocol: tcp
           FromPort: 3001
-          ToPort: 3001
-          CidrIp: 0.0.0.0/0
-        - IpProtocol: tcp
-          FromPort: 3002
-          ToPort: 3002
-          CidrIp: 0.0.0.0/0
-        - IpProtocol: tcp
-          FromPort: 3003
           ToPort: 3003
           CidrIp: 0.0.0.0/0
       Tags:
         - Key: Name
-          Value: Project01-EC2-SG
+          Value: Project01-App-Tier-SG
 
-  # Security Groups to connect EC2 instances to Aurora DB
-  # EC2 instances connect to RDS Proxy, which connects to Aurora DB
-  # This Security Group is for EC2 instances, let the instances connect to RDS Proxy       
-  EC2toRDSProxySecurityGroup:
+  # SG for the Data Tier (Aurora DB Cluster)
+  # Will have an ingress rule added below to allow traffic from the Proxy Tier.
+  DataTierSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      GroupDescription: SG for EC2 instances, let the instances connect to RDS Proxy
+      GroupDescription: "Security Group for the Data Tier (Aurora DB)"
       VpcId: !Ref Project01VPC
       Tags:
         - Key: Name
-          Value: Project01-EC2toRDSProxy-EC2-SG
+          Value: Project01-Data-Tier-SG
 
-  # This Security Group is for RDS Proxy, let the proxy allow traffic from EC2 SG
-  RDSProxySecurityGroup:
+  # SG for the RDS Proxy Tier
+  # Will have an ingress rule added below to allow traffic from the App Tier.
+  ProxyTierSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      GroupDescription: "Allows inbound traffic from EC2 instances to the RDS Proxy"
+      GroupDescription: "Security Group for the RDS Proxy Tier"
       VpcId: !Ref Project01VPC
-      SecurityGroupIngress:
-        - IpProtocol: tcp
-          FromPort: 5432
-          ToPort: 5432
-          SourceSecurityGroupId: !Ref EC2toRDSProxySecurityGroup
       Tags:
         - Key: Name
-          Value: "Project01-RDSProxy-SG"
-    
-  # This Security Group is for Aurora DB, allow traffic from RDS Proxy
-  AuroraDBSecurityGroup:
-    Type: AWS::EC2::SecurityGroup
-    Properties:
-      GroupDescription: SG for Aurora DB, let the DB allow traffic from RDS Proxy SG
-      VpcId: !Ref Project01VPC
-      SecurityGroupIngress:
-        - IpProtocol: tcp
-          FromPort: 5432
-          ToPort: 5432
-          SourceSecurityGroupId: !Ref RDSProxySecurityGroup
-      Tags:
-        - Key: Name
-          Value: Project01-DB-SG
+          Value: Project01-Proxy-Tier-SG
 
-  # Security Groups to connect EC2 instances to ElastiCache Valkey Cluster
-  # This Security Group is for EC2 instances, let the instances connect to ElastiCache Valkey Cluster
-  EC2toElastiCacheSecurityGroup:
+  # SG for the Caching Tier (ElastiCache)
+  # Will have an ingress rule added below to allow traffic from the App Tier.
+  CacheTierSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      GroupDescription: SG for EC2 instances, let the instances connect to ElastiCache Valkey Cluster
+      GroupDescription: "Security Group for the Caching Tier (ElastiCache)"
       VpcId: !Ref Project01VPC
       Tags:
         - Key: Name
-          Value: Project01-EC2toElastiCache-EC2-SG
+          Value: Project01-Cache-Tier-SG
 
-  # This Security Group is for ElastiCache Valkey Cluster, let the cluster allow traffic from EC2 SG
-  ElastiCacheSecurityGroup:
-    Type: AWS::EC2::SecurityGroup
+  # --- Define Ingress Rules to connect the tiers ---
+
+  # Rule: Allow App Tier (EC2) to connect to Proxy Tier on port 5432
+  AppToProxyIngressRule:
+    Type: AWS::EC2::SecurityGroupIngress
     Properties:
-      GroupDescription: SG for ElastiCache Valkey Cluster, let the cluster allow traffic from EC2 SG
-      VpcId: !Ref Project01VPC
-      SecurityGroupIngress:
-        - IpProtocol: tcp
-          FromPort: 6379
-          ToPort: 6379
-          SourceSecurityGroupId: !Ref EC2toElastiCacheSecurityGroup
-      Tags:
-        - Key: Name
-          Value: Project01-Cache-SG
+      GroupId: !Ref ProxyTierSecurityGroup
+      IpProtocol: tcp
+      FromPort: 5432
+      ToPort: 5432
+      SourceSecurityGroupId: !Ref AppTierSecurityGroup
+
+  # Rule: Allow Proxy Tier to connect to Data Tier (DB) on port 5432
+  ProxyToDBIngressRule:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      GroupId: !Ref DataTierSecurityGroup
+      IpProtocol: tcp
+      FromPort: 5432
+      ToPort: 5432
+      SourceSecurityGroupId: !Ref ProxyTierSecurityGroup
+      
+  # Rule: Allow App Tier (EC2) to connect to Cache Tier on port 6379
+  AppToCacheIngressRule:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      GroupId: !Ref CacheTierSecurityGroup
+      IpProtocol: tcp
+      FromPort: 6379
+      ToPort: 6379
+      SourceSecurityGroupId: !Ref AppTierSecurityGroup
 
   # NACLs
   # Create a Network ACL for the public subnets
@@ -361,29 +370,32 @@ Outputs:
       Name: Project01-Private-Subnet-1b
 
   # Security Groups Outputs
-  InstanceSecurityGroupId:
-    Value: !Ref InstanceSecurityGroup
+  ALBSecurityGroupId:
+    Description: "Security Group ID for the Application Load Balancer"
+    Value: !Ref ALBSecurityGroup
     Export:
-      Name: Project01-EC2-SG-ID
-  # Security Groups to connect EC2 instances to RDS Proxy, which connects to Aurora DB, Outputs
-  EC2toRDSProxySecurityGroupId:
-    Value: !Ref EC2toRDSProxySecurityGroup
+      Name: Project01-ALB-SG-ID
+
+  AppTierSecurityGroupId:
+    Description: "Security Group ID for the Application Tier (EC2)"
+    Value: !Ref AppTierSecurityGroup
     Export:
-      Name: Project01-EC2toRDSProxy-EC2-SG-ID
-  RDSProxySecurityGroupId:
-    Value: !Ref RDSProxySecurityGroup
+      Name: Project01-App-Tier-SG-ID
+
+  DataTierSecurityGroupId:
+    Description: "Security Group ID for the Data Tier (Aurora DB)"
+    Value: !Ref DataTierSecurityGroup
     Export:
-      Name: Project01-RDSProxy-SG-ID
-  AuroraDBSecurityGroupId:
-    Value: !Ref AuroraDBSecurityGroup
+      Name: Project01-Data-Tier-SG-ID
+      
+  ProxyTierSecurityGroupId:
+    Description: "Security Group ID for the RDS Proxy Tier"
+    Value: !Ref ProxyTierSecurityGroup
     Export:
-      Name: Project01-DB-SG-ID
-  # Security Groups to connect EC2 instances to ElastiCache Valkey Cluster Outputs
-  EC2toElastiCacheSecurityGroupId:
-    Value: !Ref EC2toElastiCacheSecurityGroup
+      Name: Project01-Proxy-Tier-SG-ID
+      
+  CacheTierSecurityGroupId:
+    Description: "Security Group ID for the Caching Tier (ElastiCache)"
+    Value: !Ref CacheTierSecurityGroup
     Export:
-      Name: Project01-EC2toElastiCache-EC2-SG-ID
-  ElastiCacheSecurityGroupId:
-    Value: !Ref ElastiCacheSecurityGroup
-    Export:
-      Name: Project01-Cache-SG-ID
+      Name: Project01-Cache-Tier-SG-ID
