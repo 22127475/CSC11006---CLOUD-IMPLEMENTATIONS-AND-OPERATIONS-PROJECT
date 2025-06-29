@@ -1,11 +1,11 @@
 const jwt = require('jsonwebtoken');
 
 const authMiddleware = (req, res, next) => {
-  const token = req.headers['authorization']?.split(' ')[1]; // Lấy token từ header Authorization
+  const token = req.headers.authorization
   console.log('Token:', token);
 
   if (!token) {
-    return res.status(401).json({ error: 'Không có quyền truy cập', isAuthenticated: false, tokenFromUser: token  });
+    return res.status(401).json({ error: 'Không có quyền truy cập', isAuthenticated: false, tokenFromUser: token, gitChanged: 1 });
   }
 
   try {
