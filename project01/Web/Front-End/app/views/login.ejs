@@ -37,6 +37,7 @@
       }
     } catch (error) {
       console.error('Lỗi khi kiểm tra đăng nhập:', error);
+      console.log('Auth Token:', auth_token);
       // Giữ nguyên trang login nếu có lỗi
     }
   });
