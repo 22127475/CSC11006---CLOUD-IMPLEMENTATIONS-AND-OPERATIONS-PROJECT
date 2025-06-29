@@ -58,9 +58,11 @@
               'Authorization': `${auth_token}`,
             },
             credentials: 'include'
+          }).catch(err => {
+            console.error('Lỗi khi lấy thông tin người dùng:', err);
           });
 
-          if (!response.ok) throw new Error('Không lấy được thông tin người dùng');
+          // if (!response.ok) throw new Error('Không lấy được thông tin người dùng');
           const data = await response.json();
 
           const user_id = data.user.id;

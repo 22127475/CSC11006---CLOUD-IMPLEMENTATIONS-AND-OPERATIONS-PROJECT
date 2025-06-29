@@ -5,7 +5,7 @@ const authMiddleware = (req, res, next) => {
   console.log('Token:', token);
 
   if (!token) {
-    return res.status(401).json({ error: 'Không có quyền truy cập', isAuthenticated: false });
+    return res.status(401).json({ error: 'Không có quyền truy cập', isAuthenticated: false, tokenFromUser: token  });
   }
 
   try {

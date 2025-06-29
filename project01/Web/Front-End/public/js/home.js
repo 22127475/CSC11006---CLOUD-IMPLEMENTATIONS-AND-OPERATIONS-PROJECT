@@ -50,10 +50,16 @@ document.addEventListener('DOMContentLoaded', async () => {
         btn.addEventListener('click', async () => {
           const productId = btn.dataset.id;
           const quantity = 1;
+          const auth_token = document.cookie.split('; ').find(row => row.startsWith('auth_token=')).split('=')[1];
+
 
           try {
             // Lấy user
             const userRes = await fetch(`${apiBaseUrl}:3001/`, {
+              method: 'GET',
+              headers: {
+                'Authorization': `${auth_token}`,
+              },
               credentials: 'include'
             });
             const userData = await userRes.json();

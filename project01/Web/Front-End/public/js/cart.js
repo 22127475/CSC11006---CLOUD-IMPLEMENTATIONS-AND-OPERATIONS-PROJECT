@@ -13,13 +13,19 @@ let cartItemCount = 0; // Biến toàn cục để lưu số sản phẩm trong 
 }
 
 async function loadCartPage() {
+const auth_token = document.cookie.split('; ').find(row => row.startsWith('auth_token=')).split('=')[1];
   try {
     const userRes = await fetch(`${apiBaseUrl}:3001/`, {
       method: 'GET',
+      headers: {
+        'Authorization': `${auth_token}`,
+      },
       credentials: 'include'
+    }).catch(err => {
+      console.error('Lỗi khi lấy thông tin người dùng:', err)
     });
 
-    if (!userRes.ok) throw new Error('Không thể lấy thông tin người dùng');
+    //if (!userRes.ok) throw new Error('Không thể lấy thông tin người dùng');
     const userData = await userRes.json();
     const user = userData.user;
 
@@ -116,7 +122,11 @@ document.querySelector('.checkout-button').addEventListener('click', async () =>
   }
 
   try {
+    const auth_token = document.cookie.split('; ').find(row => row.startsWith('auth_token=')).split('=')[1];
     const userRes = await fetch(`${apiBaseUrl}:3001/`, {
+      headers: {
+        'Authorization': `${auth_token}`,
+      },
       credentials: 'include',
     });
 

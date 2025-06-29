@@ -20,7 +20,6 @@
   document.addEventListener('DOMContentLoaded', async () => {
     // Kiểm tra đăng nhập khi trang load
     const auth_token = document.cookie.split('; ').find(row => row.startsWith('auth_token=')).split('=')[1];
-    console.log('Auth Token:', auth_token);
     try {
       const response = await fetch(`${apiBaseUrl}:3001/check-auth`, {
         credentials: 'include',
@@ -37,7 +36,6 @@
       }
     } catch (error) {
       console.error('Lỗi khi kiểm tra đăng nhập:', error);
-      alert('Auth Token:', auth_token);
       // Giữ nguyên trang login nếu có lỗi
     }
   });

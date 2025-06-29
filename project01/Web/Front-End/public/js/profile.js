@@ -1,8 +1,12 @@
 document.addEventListener('DOMContentLoaded', async () => {
+  const auth_token = document.cookie.split('; ').find(row => row.startsWith('auth_token=')).split('=')[1];
   try {
     // Lấy thông tin user từ endpoint của bạn
     const userRes = await fetch(`${apiBaseUrl}:3001/`, {
       method: 'GET',
+      headers: {
+        'Authorization': `${auth_token}`, 
+      },
       credentials: 'include'
     });
 
@@ -18,7 +22,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 
     // Fetch danh sách đơn hàng từ API
-    const auth_token = document.cookie.split('; ').find(row => row.startsWith('auth_token=')).split('=')[1];
     const ordersRes = await fetch(`${apiBaseUrl}:3003/orders/user/${user.id}`, {
       method: 'GET',
       headers: {
@@ -77,9 +80,13 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 async function loadOrderDetail(orderId) {
+  const auth_token = document.cookie.split('; ').find(row => row.startsWith('auth_token=')).split('=')[1];
   try {
     const userRes = await fetch(`${apiBaseUrl}:3001/`, {
       method: 'GET',
+      headers: {
+        'Authorization': `${auth_token}`,
+      },
       credentials: 'include'
     });
 
@@ -95,7 +102,8 @@ async function loadOrderDetail(orderId) {
       method: 'POST', // Changed to POST to send body
       credentials: 'include',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'Authorization': `${auth_token}` 
       },
       body: JSON.stringify({ orderId, userId: user.id })
     });

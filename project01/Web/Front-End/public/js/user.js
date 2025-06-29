@@ -47,8 +47,12 @@ async function fetchCurrentUser() {
       if (emailElement) {
         emailElement.textContent = user.email || 'Chưa có email';
       }
+      const auth_token = document.cookie.split('; ').find(row => row.startsWith('auth_token=')).split('=')[1];
       const checkCartResponse = await fetch(`${apiBaseUrl}:3003/orders/cart/${user.id}`, {
         method: 'GET',
+        headers: {
+          'Authorization': `${auth_token}`, 
+        },
         credentials: 'include'
       });
 
@@ -57,7 +61,9 @@ async function fetchCurrentUser() {
       if (checkCartResponse.status === 404 && cartData.shouldCreate) {
         await fetch(`${apiBaseUrl}:3003/orders/cart`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json',
+            'Authorization': `${auth_token}` // Gửi token trong header
+           },
           credentials: 'include',
           body: JSON.stringify({
             user_id: user.id,
@@ -72,11 +78,15 @@ async function fetchCurrentUser() {
     }
 
   const logoutButton = document.getElementById("logout-button");
+  const auth_token = document.cookie.split('; ').find(row => row.startsWith('auth_token=')).split('=')[1];
   if (logoutButton) {
     logoutButton.addEventListener("click", async () => {
       try {
         const response = await fetch(`${apiBaseUrl}:3001/logout`, {
           method: 'POST',
+          headers: {
+            'Authorization': `${auth_token}` // Gửi token trong header
+          },
           credentials: 'include'
         });
 
