@@ -11,11 +11,14 @@ async function fetchCurrentUser() {
     // Nếu đã có dữ liệu user, trả về ngay
     return cachedUser;
   }
-
+  const auth_token = document.cookie.split('; ').find(row => row.startsWith('auth_token=')).split('=')[1];
   try {
     const response = await fetch(`${apiBaseUrl}:3001/`, {
       method: 'GET',
-      credentials: 'include' // gửi cookie
+      headers: {
+        'Authorization': `${auth_token}`, // Gửi token trong header
+      },
+      credentials: 'include'
     });
     if (!response.ok) throw new Error('Không lấy được thông tin người dùng');
     const data = await response.json();

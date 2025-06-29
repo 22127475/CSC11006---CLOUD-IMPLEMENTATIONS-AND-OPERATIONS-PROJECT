@@ -3,10 +3,10 @@ const cors = require('cors');
 const User = require('./models/User');
 const app = express();
 const port = process.env.PORT || 3001;
-const cookieParser = require('cookie-parser');
+// const cookieParser = require('cookie-parser');
 const jwt = require('jsonwebtoken');
 const authMiddleware = require('./middleware/auth');
-app.use(cookieParser());
+// app.use(cookieParser());
 
 // disable etag
 app.disable('etag');
@@ -82,7 +82,7 @@ app.post('/login', async (req, res) => {
 
     const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '1h' });
 
-    // Gửi cookie
+    // Gửi auth_token
     res.status(200).json({auth_token: token, message: 'Đăng nhập thành công'});
 
   } catch (err) {

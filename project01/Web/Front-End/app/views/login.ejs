@@ -19,9 +19,14 @@
 <script>
   document.addEventListener('DOMContentLoaded', async () => {
     // Kiểm tra đăng nhập khi trang load
+    const auth_token = document.cookie.split('; ').find(row => row.startsWith('auth_token=')).split('=')[1];
+    console.log('Auth Token:', auth_token);
     try {
       const response = await fetch(`${apiBaseUrl}:3001/check-auth`, {
-        credentials: 'include' // Quan trọng để gửi cookie
+        credentials: 'include',
+        headers: {
+          'Authorization': `${auth_token}`
+      }
       });
 
       const data = await response.json();
@@ -46,9 +51,10 @@
     try {
       const response = await fetch(`${apiBaseUrl}:3001/login`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify(formData),
-        credentials: 'include' // Quan trọng: cho phép gửi/nhận cookie
       });
 
       const data = await response.json();

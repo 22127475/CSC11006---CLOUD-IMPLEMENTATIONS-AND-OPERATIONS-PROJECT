@@ -18,9 +18,13 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 
     // Fetch danh sách đơn hàng từ API
+    const auth_token = document.cookie.split('; ').find(row => row.startsWith('auth_token=')).split('=')[1];
     const ordersRes = await fetch(`${apiBaseUrl}:3003/orders/user/${user.id}`, {
       method: 'GET',
-      credentials: 'include' // Sử dụng credentials nếu bạn dùng session/cookie
+      headers: {
+        'Authorization': `${auth_token}`, // Gửi token trong header
+      },
+      credentials: 'include'
     });
 
     if (!ordersRes.ok) {

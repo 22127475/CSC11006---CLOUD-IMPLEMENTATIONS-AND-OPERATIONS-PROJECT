@@ -1,7 +1,7 @@
 const jwt = require('jsonwebtoken');
 
 const authMiddleware = (req, res, next) => {
-  const token = req.cookies.auth_token;
+  const token = req.headers['authorization']?.split(' ')[1]; // Lấy token từ header Authorization
   console.log('Token:', token);
 
   if (!token) {

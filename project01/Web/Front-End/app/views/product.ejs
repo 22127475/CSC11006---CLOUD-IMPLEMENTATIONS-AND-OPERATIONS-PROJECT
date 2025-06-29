@@ -49,11 +49,15 @@
       document.querySelectorAll('.buy-button').forEach(button => {
         button.addEventListener('click', async (e) => {
         const productId = e.target.dataset.id;
+        const auth_token = document.cookie.split('; ').find(row => row.startsWith('auth_token=')).split('=')[1];
 
         try {
           const response = await fetch(`${apiBaseUrl}:3001/`, {
             method: 'GET',
-            credentials: 'include' // Đảm bảo cookie được gửi (để xác thực phiên)
+            headers: {
+              'Authorization': `${auth_token}`,
+            },
+            credentials: 'include'
           });
 
           if (!response.ok) throw new Error('Không lấy được thông tin người dùng');
@@ -70,13 +74,15 @@
           const res = await fetch(`${apiBaseUrl}:3003/orders/cart/add`, {
             method: 'POST',
             headers: {
-              'Content-Type': 'application/json'
+              'Content-Type': 'application/json',
+              'Authorization': `${auth_token}`,
             },
             body: JSON.stringify({
               user_id,
               productId,
               quantity: 1
-            })
+            }),
+            credentials: 'include' 
           });
 
           const result = await res.json();
