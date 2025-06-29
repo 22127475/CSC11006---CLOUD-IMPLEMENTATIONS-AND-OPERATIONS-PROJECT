@@ -26,7 +26,7 @@
         credentials: 'include',
         headers: {
           'Authorization': `${auth_token}`
-      }
+        }
       });
 
       const data = await response.json();
@@ -37,7 +37,7 @@
       }
     } catch (error) {
       console.error('Lỗi khi kiểm tra đăng nhập:', error);
-      console.log('Auth Token:', auth_token);
+      alert('Auth Token:', auth_token);
       // Giữ nguyên trang login nếu có lỗi
     }
   });
@@ -52,7 +52,7 @@
     try {
       const response = await fetch(`${apiBaseUrl}:3001/login`, {
         method: 'POST',
-        headers: { 
+        headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(formData),
@@ -60,7 +60,7 @@
 
       const data = await response.json();
       if (response.ok) {
-        setCookie('auth_token', data.auth_token, 1/24); // Lưu token vào cookie
+        setCookie('auth_token', data.auth_token, 1 / 24); // Lưu token vào cookie
         localStorage.setItem('domUpdated', 'false'); // Reset trạng thái DOM
         window.location.href = '/'; // Trang chủ
       } else {
@@ -74,8 +74,8 @@
 
   function setCookie(cname, cvalue, exdays) {
     const d = new Date();
-    d.setTime(d.getTime() + (exdays*24*60*60*1000));
-    let expires = "expires="+ d.toUTCString();
+    d.setTime(d.getTime() + (exdays * 24 * 60 * 60 * 1000));
+    let expires = "expires=" + d.toUTCString();
     document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
   }
 
