@@ -35,6 +35,7 @@ Resources:
     Properties:
       DBClusterIdentifier: project01-aurora-cluster
       Engine: aurora-postgresql
+      EngineVersion: "15.5" 
       MasterUsername:
         !Sub "{{resolve:secretsmanager:${DBSecret}:SecretString:username}}"
       MasterUserPassword:
@@ -44,6 +45,8 @@ Resources:
       Port: 5432
       VpcSecurityGroupIds:
         - !ImportValue Project01-Data-Tier-SG-ID
+      EnableCloudwatchLogsExports:
+        - postgresql
       BackupRetentionPeriod: 7
       DeletionProtection: false
       Tags:
@@ -57,6 +60,7 @@ Resources:
       DBClusterIdentifier: !Ref AuroraCluster
       DBInstanceClass: db.t3.medium
       Engine: aurora-postgresql
+      EngineVersion: "15.5"
       PubliclyAccessible: false
       Tags:
         - Key: Name
@@ -69,6 +73,7 @@ Resources:
       DBClusterIdentifier: !Ref AuroraCluster
       DBInstanceClass: db.t3.medium
       Engine: aurora-postgresql
+      EngineVersion: "15.5" 
       PubliclyAccessible: false
       Tags:
         - Key: Name
@@ -98,7 +103,10 @@ Resources:
   # RDS Proxy for Aurora PostgreSQL
   RDSProxy:
     Type: AWS::RDS::DBProxy
-    DependsOn: AuroraCluster
+    DependsOn:
+      - AuroraCluster
+      - AuroraInstance
+      - AuroraReplica
     Properties:
       DBProxyName: "Project01-Aurora-Proxy"
       EngineFamily: "POSTGRESQL"
@@ -120,7 +128,10 @@ Resources:
   # RDS Proxy Target Group for Aurora
   ProxyDefaultTargetGroup:
     Type: AWS::RDS::DBProxyTargetGroup
-    DependsOn: AuroraCluster
+    DependsOn:
+      - AuroraCluster
+      - AuroraInstance
+      - AuroraReplica
     Properties:
       DBProxyName: !Ref RDSProxy
       TargetGroupName: "default"

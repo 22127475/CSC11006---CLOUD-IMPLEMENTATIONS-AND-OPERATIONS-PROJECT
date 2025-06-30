@@ -25,6 +25,7 @@ Resources:
       CacheSubnetGroupName: !Ref CacheSubnetGroup
       SecurityGroupIds:
         - !ImportValue Project01-Cache-Tier-SG-ID
+      ClusterMode: "disabled"
       NumNodeGroups: 1
       ReplicasPerNodeGroup: 0
       AutomaticFailoverEnabled: false
@@ -36,11 +37,18 @@ Resources:
           Value: Project01-ElastiCache-Cluster
 
 Outputs:
+  ElastiCacheClusterId:
+    Description: "The ID of the ElastiCache cluster"
+    Value: !Ref ElastiCacheCluster
+    Export:
+      Name: Project01-ElastiCache-Cluster-Id
+
   CacheEndpointAddress:
     Description: "The Primary Endpoint of the ElastiCache Valkey cluster"
     Value: !GetAtt ElastiCacheCluster.PrimaryEndPoint.Address
     Export:
       Name: Project01-Cache-EndpointAddress
+
   CacheEndpointPort:
     Description: "The Port of the ElastiCache Valkey cluster"
     Value: !GetAtt ElastiCacheCluster.PrimaryEndPoint.Port
